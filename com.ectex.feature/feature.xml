@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="com.ectex.feature"
+      label="EcTeX - Split LaTeX Workspace"
+      version="1.0.0.qualifier"
+      provider-name="EcTeX">
+
+   <description>
+      LaTeX editor with syntax highlighting and a PDF Preview view. Build with pdflatex and bibtex from the keyboard, and jump between the source and the PDF with SyncTeX (forward search with Ctrl+Space, inverse search with Ctrl+click or Ctrl+Space in the PDF view).
+   </description>
+
+   <copyright>
+      Copyright (c) EcTeX. All rights reserved.
+   </copyright>
+
+   <license url="https://www.apache.org/licenses/LICENSE-2.0">
+      EcTeX is licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+
+      EcTeX bundles the following third-party libraries, which are also licensed under the Apache License, Version 2.0:
+
+      - Apache PDFBox 2.0.31 (https://pdfbox.apache.org/)
+      - Apache FontBox 2.0.31 (https://pdfbox.apache.org/)
+      - Apache Commons Logging 1.2 (https://commons.apache.org/proper/commons-logging/)
+
+      EcTeX needs pdflatex, bibtex and synctex (MiKTeX or TeX Live) installed on your computer; they are not part of this feature.
+   </license>
+
+   <plugin
+         id="com.ectex.plugin"
+         download-size="0"
+         install-size="0"
+         version="1.0.0.qualifier"
+         unpack="false"/>
+
+</feature>

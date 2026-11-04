@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <!-- LaTeX source editor (the PDF is shown in its own view, see below) -->
+   <extension point="org.eclipse.ui.editors">
+      <editor
+            id="com.ectex.plugin.editors.EcTeXEditor"
+            name="EcTeX LaTeX Editor"
+            extensions="tex"
+            class="com.ectex.plugin.editors.EcTeXEditor"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="true">
+      </editor>
+   </extension>
+
+   <!-- PDF Preview view (Window > Show View > Other... > EcTeX) -->
+   <extension point="org.eclipse.ui.views">
+      <category
+            id="com.ectex.plugin.views.category"
+            name="EcTeX">
+      </category>
+      <view
+            id="com.ectex.plugin.views.PdfView"
+            name="PDF Preview"
+            category="com.ectex.plugin.views.category"
+            class="com.ectex.plugin.views.PdfView"
+            allowMultiple="false"
+            restorable="true">
+      </view>
+   </extension>
+
+   <!-- Default position: right of the editor area (a hidden placeholder until the first .tex file is opened) -->
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="*">
+         <view
+               id="com.ectex.plugin.views.PdfView"
+               relationship="right"
+               relative="org.eclipse.ui.editorss"
+               ratio="0.5"
+               visible="false">
+         </view>
+      </perspectiveExtension>
+   </extension>
+
+   <!-- Key binding context: child of the text editor scope, so these bindings win over
+        the global ones (Ctrl+F2 = terminate, Ctrl+Space = content assist, Ctrl+B = build all, ...) -->
+   <extension point="org.eclipse.ui.contexts">
+      <context
+            id="com.ectex.plugin.contexts.editor"
+            name="EcTeX Editor"
+            description="Active while an EcTeX LaTeX editor is in use"
+            parentId="org.eclipse.ui.textEditorScope">
+      </context>
+      <!-- Child of the editor context: the PDF Preview view shares the editor's key bindings, so each
+           command has a single binding that can be changed in Preferences > General > Keys -->
+      <context
+            id="com.ectex.plugin.contexts.pdfview"
+            name="EcTeX PDF Preview"
+            description="Active while the EcTeX PDF Preview view has the focus"
+            parentId="com.ectex.plugin.contexts.editor">
+      </context>
+   </extension>
+
+   <extension point="org.eclipse.ui.commands">
+      <category
+            id="com.ectex.plugin.category"
+            name="EcTeX">
+      </category>
+      <command
+            id="com.ectex.plugin.commands.build"
+            name="Build PDF (pdflatex)"
+            description="Run pdflatex on the active .tex file and refresh the PDF view"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.bibtex"
+            name="Run BibTeX"
+            description="Run bibtex on the active .tex file (after a pdflatex run)"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.sync"
+            name="Synchronize (Forward / Inverse Search)"
+            description="In the editor: jump to the PDF. In the PDF viewer: jump to the source"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.bold"
+            name="Bold \textbf{}"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.italic"
+            name="Italic \textit{}"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.underline"
+            name="Underline \underline{}"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.emph"
+            name="Emphasis \emph{}"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.math"
+            name="Inline Math $ $"
+            categoryId="com.ectex.plugin.category">
+      </command>
+   </extension>
+
+   <!-- Handlers are only active while an EcTeX editor is the active editor -->
+   <extension point="org.eclipse.ui.handlers">
+      <!-- build, bibtex and sync also work while the PDF view has the focus -->
+      <handler
+            commandId="com.ectex.plugin.commands.build"
+            class="com.ectex.plugin.handlers.BuildHandler">
+         <activeWhen>
+            <or>
+               <with variable="activeEditorId">
+                  <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+               </with>
+               <with variable="activePartId">
+                  <equals value="com.ectex.plugin.views.PdfView"/>
+               </with>
+            </or>
+         </activeWhen>
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.bibtex"
+            class="com.ectex.plugin.handlers.BibtexHandler">
+         <activeWhen>
+            <or>
+               <with variable="activeEditorId">
+                  <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+               </with>
+               <with variable="activePartId">
+                  <equals value="com.ectex.plugin.views.PdfView"/>
+               </with>
+            </or>
+         </activeWhen>
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.sync"
+            class="com.ectex.plugin.handlers.SyncHandler">
+         <activeWhen>
+            <or>
+               <with variable="activeEditorId">
+                  <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+               </with>
+               <with variable="activePartId">
+                  <equals value="com.ectex.plugin.views.PdfView"/>
+               </with>
+            </or>
+         </activeWhen>
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.bold"
+            class="com.ectex.plugin.handlers.WrapHandler">
+         <activeWhen>
+            <with variable="activeEditorId">
+               <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+            </with>
+         </activeWhen>
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.italic"
+            class="com.ectex.plugin.handlers.WrapHandler">
+         <activeWhen>
+            <with variable="activeEditorId">
+               <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+            </with>
+         </activeWhen>
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.underline"
+            class="com.ectex.plugin.handlers.WrapHandler">
+         <activeWhen>
+            <with variable="activeEditorId">
+               <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+            </with>
+         </activeWhen>
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.emph"
+            class="com.ectex.plugin.handlers.WrapHandler">
+         <activeWhen>
+            <with variable="activeEditorId">
+               <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+            </with>
+         </activeWhen>
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.math"
+            class="com.ectex.plugin.handlers.WrapHandler">
+         <activeWhen>
+            <with variable="activeEditorId">
+               <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+            </with>
+         </activeWhen>
+      </handler>
+   </extension>
+
+   <!-- Default key bindings. Users can change every one of them in Window > Preferences > General > Keys
+        (filter "EcTeX"). M1 is Ctrl on Windows and Linux (Command on macOS). -->
+   <extension point="org.eclipse.ui.bindings">
+      <key
+            commandId="com.ectex.plugin.commands.build"
+            contextId="com.ectex.plugin.contexts.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+F1">
+      </key>
+      <key
+            commandId="com.ectex.plugin.commands.bibtex"
+            contextId="com.ectex.plugin.contexts.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+F2">
+      </key>
+      <key
+            commandId="com.ectex.plugin.commands.sync"
+            contextId="com.ectex.plugin.contexts.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+SPACE">
+      </key>
+      <key
+            commandId="com.ectex.plugin.commands.bold"
+            contextId="com.ectex.plugin.contexts.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+B">
+      </key>
+      <key
+            commandId="com.ectex.plugin.commands.italic"
+            contextId="com.ectex.plugin.contexts.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+I">
+      </key>
+      <key
+            commandId="com.ectex.plugin.commands.underline"
+            contextId="com.ectex.plugin.contexts.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+U">
+      </key>
+      <key
+            commandId="com.ectex.plugin.commands.emph"
+            contextId="com.ectex.plugin.contexts.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+E">
+      </key>
+      <key
+            commandId="com.ectex.plugin.commands.math"
+            contextId="com.ectex.plugin.contexts.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+M">
+      </key>
+   </extension>
+
+   <!-- "EcTeX" menu in the main menu bar, visible while an EcTeX editor is active -->
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               id="com.ectex.plugin.menu"
+               label="EcTeX">
+            <visibleWhen checkEnabled="false">
+               <with variable="activeEditorId">
+                  <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+               </with>
+            </visibleWhen>
+            <command
+                  commandId="com.ectex.plugin.commands.build"
+                  label="Build PDF"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.bibtex"
+                  label="Run BibTeX"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.sync"
+                  label="Forward / Inverse Search"
+                  style="push">
+            </command>
+            <separator
+                  name="com.ectex.plugin.menu.sep"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="com.ectex.plugin.commands.bold"
+                  label="Bold"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.italic"
+                  label="Italic"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.underline"
+                  label="Underline"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.emph"
+                  label="Emphasis"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.math"
+                  label="Inline Math"
+                  style="push">
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
+
+   <extension point="org.eclipse.ui.preferencePages">
+      <page
+            id="com.ectex.plugin.preferences.main"
+            name="EcTeX"
+            class="com.ectex.plugin.preferences.EcTeXPreferencePage">
+      </page>
+   </extension>
+
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="com.ectex.plugin.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+
+</plugin>

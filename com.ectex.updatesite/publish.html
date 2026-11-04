@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Publishing the EcTeX update site</title>
+<meta name="description" content="How to rebuild and host the EcTeX update site.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="index.html">EcTeX</a>
+    <nav>
+      <a href="index.html">Install</a>
+      <a href="usage.html">Usage</a>
+      <a href="publish.html" aria-current="page">Publishing</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Publishing this site</h1>
+  <p class="lead">For maintainers: rebuild the update site and put it on a web server.</p>
+
+  <h2>What is in the folder</h2>
+  <p>The <code>com.ectex.updatesite</code> project is both a p2 repository and this small website:</p>
+  <div class="table-scroll"><table>
+    <tr><th>Path</th><th>Purpose</th></tr>
+    <tr><td><code>features/</code>, <code>plugins/</code>, <code>content.jar</code>, <code>artifacts.jar</code></td><td>The p2 repository Eclipse reads. Generated; do not edit by hand.</td></tr>
+    <tr><td><code>index.html</code>, <code>usage.html</code>, <code>publish.html</code>, <code>style.css</code></td><td>This website. Static files.</td></tr>
+    <tr><td><code>category.xml</code></td><td>Defines the category shown in the Install dialog.</td></tr>
+    <tr><td><code>build/build-site.bat</code>, <code>build/build-site.sh</code>, <code>build/BuildSite.java</code></td><td>Rebuild the repository (see below). The two scripts just start <code>BuildSite.java</code>.</td></tr>
+    <tr><td><code>dist/ectex-updatesite-&lt;version&gt;.zip</code></td><td>Offline copy of the repository for <em>Add&hellip; &gt; Archive&hellip;</em>.</td></tr>
+  </table></div>
+
+  <h2>Rebuild</h2>
+  <p>Requirements: a JDK 17+ (<code>javac</code> and <code>jar</code> on the <code>PATH</code>) and an Eclipse that includes the p2 publisher tools (an Eclipse SDK or PDE install does). No PDE project import and no Maven are needed.</p>
+  <pre><code>:: Windows
+cd com.ectex.updatesite\build
+build-site.bat --eclipse-home "C:\Program Files\eclipsesdk"
+
+# Linux / macOS
+cd com.ectex.updatesite/build
+sh build-site.sh --eclipse-home /path/to/eclipse</code></pre>
+  <p>Instead of <code>--eclipse-home</code> you can set the <code>ECLIPSE_HOME</code> environment variable. The script compiles <code>com.ectex.plugin</code>, replaces <code>.qualifier</code> in the versions with a timestamp, publishes the plug-in and the <code>com.ectex.feature</code> feature, adds the category, and writes the zip. Older versions stay in the repository so existing users can update; add <code>--clean</code> to start from an empty repository. Run it with <code>--help</code> to see all options.</p>
+  <p>To release a new version number, change <code>Bundle-Version</code> in <code>com.ectex.plugin/META-INF/MANIFEST.MF</code> and the <code>version</code> values in <code>com.ectex.feature/feature.xml</code> (both <code>x.y.z.qualifier</code>, identical), then rebuild.</p>
+  <p class="note">The content is <strong>not signed</strong>, so Eclipse shows an &ldquo;unsigned content&rdquo; warning on install. Signing requires a code-signing certificate and the <code>jarsigner</code> tool.</p>
+
+  <h2>Host it</h2>
+  <p>Any static web server works. Copy the contents of the <code>com.ectex.updatesite</code> folder (everything except <code>build/</code> and <code>.project</code> is needed) to the server so that <code>content.jar</code> is directly under the published address. Users then add that address in <em>Help &gt; Install New Software&hellip;</em>. The address must be served over plain file download with no redirects to a login page.</p>
+  <p><strong>GitHub Pages (how this site is published):</strong> the repository <a href="https://github.com/thdiaman/ectex">thdiaman/ectex</a> contains a workflow, <code>.github/workflows/pages.yml</code>, that publishes this folder (without <code>build/</code>, <code>dist/</code> and <code>.project</code>) whenever files in it change on <code>main</code>. Enable it once under <em>Settings &gt; Pages &gt; Build and deployment &gt; Source: GitHub Actions</em>. The update-site address is then <code>https://thdiaman.github.io/ectex/</code>. For another repository use <code>https://&lt;user&gt;.github.io/&lt;repo&gt;/</code>.</p>
+  <p>Release routine: rebuild, commit the changed files in this folder, push; attach <code>dist/ectex-updatesite-&lt;version&gt;.zip</code> to a GitHub release if you want to offer the offline copy.</p>
+
+  <h2>Optional: build from inside Eclipse (PDE)</h2>
+  <p>The projects are also PDE projects. After importing <code>com.ectex.plugin</code>, <code>com.ectex.feature</code> and <code>com.ectex.updatesite</code> into a PDE-enabled Eclipse, you can open <code>category.xml</code> and use its <em>Build All</em> button, or export the feature through <em>File &gt; Export &gt; Plug-in Development &gt; Deployable features</em>. This route has not been tested; the build script above is the verified way. (The <code>.bat</code> launcher was tested on Windows, and the <code>.sh</code> launcher through Git Bash on Windows; it has not been run on Linux or macOS.)</p>
+
+  <h2>Try the site locally</h2>
+  <p>In Eclipse: <em>Help &gt; Install New Software&hellip; &gt; Add&hellip; &gt; Local&hellip;</em> and choose the <code>com.ectex.updatesite</code> folder.</p>
+</main>
+
+<footer>
+  <div class="wrap">EcTeX 1.0.0 &middot; <a href="index.html">Install</a> &middot; <a href="usage.html">Usage</a></div>
+</footer>
+</body>
+</html>

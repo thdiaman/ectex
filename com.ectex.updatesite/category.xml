@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="com.ectex.feature" version="0.0.0">
+      <category name="latex"/>
+   </feature>
+   <category-def name="latex" label="EcTeX - LaTeX Editor and PDF Preview">
+      <description>
+         LaTeX editor with syntax highlighting, a PDF Preview view, pdflatex/bibtex builds and SyncTeX forward/inverse search.
+      </description>
+   </category-def>
+</site>

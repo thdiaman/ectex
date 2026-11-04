@@ -1,0 +1,22 @@
+# Compiled output (Eclipse / javac)
+bin/
+*.class
+
+# Offline copy of the update site: attach it to a GitHub release instead of committing it
+com.ectex.updatesite/dist/
+
+# Eclipse workspace metadata and OS files
+.metadata/
+.DS_Store
+Thumbs.db
+
+# Demo
+com.ectex.plugin/ectex-demo/*.aux
+com.ectex.plugin/ectex-demo/*.bbl
+com.ectex.plugin/ectex-demo/*.toc
+com.ectex.plugin/ectex-demo/*.synctex.gz
+com.ectex.plugin/ectex-demo/*.out
+com.ectex.plugin/ectex-demo/*.log
+com.ectex.plugin/ectex-demo/*.bbl
+com.ectex.plugin/ectex-demo/*.blg
+com.ectex.plugin/ectex-demo/*.pdf

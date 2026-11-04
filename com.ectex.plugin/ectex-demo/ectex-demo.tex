@@ -1,0 +1,258 @@
+\documentclass[11pt,a4paper]{article}
+
+% ------------------------------------------------
+% Packages
+% ------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{enumitem}
+
+% ------------------------------------------------
+% Hyperlinks and colors
+% ------------------------------------------------
+\definecolor{ectexblue}{RGB}{35,85,145}
+\definecolor{codegray}{RGB}{245,245,245}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=ectexblue,
+    citecolor=ectexblue,
+    urlcolor=ectexblue,
+    pdftitle={EcTeX: LaTeX for Eclipse},
+    pdfauthor={EcTeX Project}
+}
+
+% ------------------------------------------------
+% Code listings
+% ------------------------------------------------
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{codegray},
+    frame=single,
+    breaklines=true,
+    columns=fullflexible,
+    showstringspaces=false
+}
+
+% ------------------------------------------------
+% Document information
+% ------------------------------------------------
+\title{\textbf{EcTeX: LaTeX for Eclipse}\\
+\large An Integrated Editing and PDF Preview Environment}
+
+\author{EcTeX Project}
+\date{Version 1.0.0 -- 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+EcTeX is an Eclipse-based environment for writing and compiling
+LaTeX documents. It integrates a syntax-highlighted text editor,
+PDF preview, build commands and source-to-PDF synchronization
+into a single workspace. By combining the capabilities of an
+existing TeX distribution with the extensibility of Eclipse,
+EcTeX aims to make scientific and technical document preparation
+more convenient. This paper presents its main features,
+development environment and typical workflow.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+LaTeX is widely used for preparing scientific papers,
+technical reports and other documents that require
+structured text, mathematical notation and bibliographies.
+Its separation of content and presentation makes it
+particularly suitable for documents that need consistent
+formatting and reproducible output.
+
+However, working with LaTeX often involves switching
+between a text editor, a terminal, a PDF viewer and
+bibliography tools. EcTeX addresses this workflow by
+integrating these activities into the Eclipse IDE.
+
+The project provides a dedicated editor for \texttt{.tex}
+files, an embedded PDF preview and convenient commands
+for compiling documents and navigating between source
+code and the generated PDF.
+
+\section{Features}
+
+\subsection{LaTeX editor}
+
+EcTeX provides a specialized editor for \texttt{.tex} files
+with syntax highlighting. It also offers productivity
+shortcuts for frequently used LaTeX commands.
+
+For example, the following commands are available by
+default:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Ctrl+B}: Insert \verb|\textbf{}|.
+    \item \textbf{Ctrl+I}: Insert \verb|\textit{}|.
+    \item \textbf{Ctrl+U}: Insert \verb|\underline{}|.
+    \item \textbf{Ctrl+Shift+E}: Insert \verb|\emph{}|.
+    \item \textbf{Ctrl+Shift+M}: Insert inline mathematics.
+\end{itemize}
+
+When text is selected, formatting commands wrap the
+selection. Otherwise, an empty command pair is inserted
+and the caret is placed inside it.
+
+All shortcuts can be customized through the standard
+Eclipse key-binding preferences.
+
+\subsection{Integrated PDF preview}
+
+The PDF Preview view displays the compiled document
+next to the source editor. It automatically follows the
+active LaTeX file and loads the corresponding PDF.
+
+The preview supports:
+\begin{itemize}[noitemsep]
+    \item Mouse-wheel scrolling.
+    \item Zooming using Ctrl+mouse wheel or keyboard
+    shortcuts.
+    \item Fit-to-width and zoom commands.
+    \item Highlighting of synchronized source locations.
+\end{itemize}
+
+PDF rendering is provided through Apache PDFBox
+\cite{pdfbox}.
+
+\subsection{Build integration}
+
+EcTeX integrates the standard \texttt{pdflatex} and
+\texttt{bibtex} command-line tools.
+
+The default build commands are:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Shortcut} & \textbf{Operation} \\
+\midrule
+Ctrl+F1 & Build PDF using pdflatex \\
+Ctrl+F2 & Run BibTeX \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The PDF build executes:
+
+\begin{lstlisting}
+pdflatex -interaction=nonstopmode \
+         -file-line-error \
+         -synctex=1
+\end{lstlisting}
+
+Compiler output is displayed in the EcTeX Build console.
+LaTeX errors are also reported through Eclipse problem
+markers.
+
+For documents containing bibliographic references,
+the recommended compilation sequence is:
+
+\begin{enumerate}[noitemsep]
+    \item Run PDFLaTeX.
+    \item Run BibTeX.
+    \item Run PDFLaTeX again.
+    \item Run PDFLaTeX once more.
+\end{enumerate}
+
+\section{Source and PDF Synchronization}
+
+One of the central features of EcTeX is bidirectional
+navigation between the LaTeX source and its compiled PDF.
+
+This functionality is implemented using SyncTeX
+\cite{synctex}.
+
+\subsection{Forward synchronization}
+
+Forward synchronization moves from the source editor
+to the corresponding location in the PDF.
+
+The user places the caret on a source line and presses
+\texttt{Ctrl+Space}. The PDF preview scrolls to the
+corresponding position and briefly highlights it.
+
+\subsection{Inverse synchronization}
+
+Inverse synchronization performs the opposite operation.
+The user holds Ctrl and clicks on text in the PDF preview.
+EcTeX then navigates to the corresponding source location.
+
+This makes it easier to locate formatting problems,
+review generated content and navigate longer documents.
+
+\section{Technical Requirements}
+
+EcTeX is implemented as an Eclipse plug-in and requires:
+
+\begin{itemize}[noitemsep]
+    \item Eclipse IDE with Java 17 or newer.
+    \item A compatible TeX distribution, such as TeX Live
+    or MiKTeX.
+    \item The \texttt{pdflatex}, \texttt{bibtex} and
+    \texttt{synctex} executables.
+    \item Apache PDFBox 2.0.31 for PDF rendering.
+\end{itemize}
+
+If the required executables are not available through
+the system \texttt{PATH}, their locations can be
+configured through:
+
+\begin{center}
+\textit{Window $\rightarrow$ Preferences $\rightarrow$ EcTeX}
+\end{center}
+
+The plug-in has been built and install-tested against
+Eclipse 2026-03.
+
+\section{Limitations and Future Work}
+
+The current version focuses on providing a lightweight
+and integrated LaTeX editing experience.
+
+Some known limitations include:
+
+\begin{itemize}[noitemsep]
+    \item Source-to-PDF synchronization is currently
+    supported for the main document file.
+    \item PDF rendering uses normal resolution, which
+    may appear soft on high-DPI displays.
+    \item The PDF preview does not currently provide
+    text-search functionality.
+\end{itemize}
+
+Future development could explore improved PDF rendering,
+document search, more advanced LaTeX completion and
+additional build-system integrations.
+
+\section{Conclusion}
+
+EcTeX brings essential LaTeX editing and compilation
+functionality into the Eclipse environment. Its integrated
+editor, PDF preview, build commands and SyncTeX navigation
+provide a unified workflow without requiring users to
+constantly switch between separate applications.
+
+The project is intended to be a practical foundation
+for further development of LaTeX tooling within Eclipse.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
