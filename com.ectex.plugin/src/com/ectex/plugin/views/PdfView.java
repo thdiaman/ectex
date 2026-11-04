@@ -143,13 +143,17 @@ public class PdfView extends ViewPart {
 			return;
 		}
 		File pdf = tex == null ? null : tex.getPdfFile();
-		boolean sameDocument = tex == editor && pdf != null && pdf.equals(loadedFile);
+		// The document is identified by its PDF, not by the editor: all files of a project that share
+		// a main file show the same PDF, so switching between them must not reload it or reset the scroll position.
+		boolean sameDocument = pdf != null && pdf.equals(loadedFile);
 		editor = tex;
 		if (pdf == null || !pdf.isFile()) {
 			loadedFile = null;
+			setContentDescription("");
 			viewer.clear();
 			return;
 		}
+		setContentDescription("Document: " + tex.getMainFile().getName());
 		if (!sameDocument) {
 			viewer.clear(); // different document: start at the top
 		}

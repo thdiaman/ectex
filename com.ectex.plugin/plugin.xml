@@ -80,6 +80,18 @@
             categoryId="com.ectex.plugin.category">
       </command>
       <command
+            id="com.ectex.plugin.commands.setMainFile"
+            name="Set as Main File"
+            description="Use this file as the main file of its project: build, BibTeX, PDF Preview and sync then work on it from every file of the project"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.clearMainFile"
+            name="Clear Main File"
+            description="Remove the main file of the project, so each file is built on its own again"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
             id="com.ectex.plugin.commands.sync"
             name="Synchronize (Forward / Inverse Search)"
             description="In the editor: jump to the PDF. In the PDF viewer: jump to the source"
@@ -155,6 +167,24 @@
                   <equals value="com.ectex.plugin.views.PdfView"/>
                </with>
             </or>
+         </activeWhen>
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.setMainFile"
+            class="com.ectex.plugin.handlers.MainFileHandler">
+         <activeWhen>
+            <with variable="activeEditorId">
+               <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+            </with>
+         </activeWhen>
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.clearMainFile"
+            class="com.ectex.plugin.handlers.MainFileHandler">
+         <activeWhen>
+            <with variable="activeEditorId">
+               <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+            </with>
          </activeWhen>
       </handler>
       <handler
@@ -282,6 +312,20 @@
             <command
                   commandId="com.ectex.plugin.commands.sync"
                   label="Forward / Inverse Search"
+                  style="push">
+            </command>
+            <separator
+                  name="com.ectex.plugin.menu.sepMain"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="com.ectex.plugin.commands.setMainFile"
+                  label="Set as Main File"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.clearMainFile"
+                  label="Clear Main File"
                   style="push">
             </command>
             <separator

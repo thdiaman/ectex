@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -26,10 +27,12 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.osgi.service.prefs.BackingStoreException;
 
 import com.ectex.plugin.Activator;
 import com.ectex.plugin.Commands;
 import com.ectex.plugin.build.BuildJob;
+import com.ectex.plugin.project.MainFile;
 import com.ectex.plugin.sync.SyncTex;
 import com.ectex.plugin.views.PdfView;
 import com.ectex.plugin.views.PdfViewer;
@@ -110,13 +113,22 @@ public class EcTeXEditor extends TextEditor {
 		return null;
 	}
 
-	/** The PDF pdflatex produces for this document (same folder, same base name). */
-	public File getPdfFile() {
-		File tex = getTexFile();
-		if (tex == null) {
-			return null;
+	/**
+	 * The file pdflatex and bibtex run on: the main file of this editor's project if one is set (and
+	 * exists), otherwise this editor's own file. Null if the input is not a local file.
+	 */
+	public File getMainFile() {
+		IFile configured = configuredMainFile();
+		if (configured != null && configured.exists() && configured.getLocation() != null) {
+			return configured.getLocation().toFile();
 		}
-		return new File(tex.getParentFile(), baseName(tex) + ".pdf");
+		return getTexFile();
+	}
+
+	/** The PDF pdflatex produces for the main file (same folder, same base name). */
+	public File getPdfFile() {
+		File main = getMainFile();
+		return main == null ? null : new File(main.getParentFile(), baseName(main) + ".pdf");
 	}
 
 	private static String baseName(File tex) {
@@ -125,55 +137,141 @@ public class EcTeXEditor extends TextEditor {
 		return dot > 0 ? name.substring(0, dot) : name;
 	}
 
+	// ---------------------------------------------------------------- main file
+
+	/** The main file configured for this editor's project, or null. It may not exist (any more). */
+	private IFile configuredMainFile() {
+		return getEditorInput() instanceof IFileEditorInput input ? MainFile.get(input.getFile().getProject()) : null;
+	}
+
+	/** Like {@link #getMainFile()}, but reports a problem in the status line and returns null for it. */
+	private File resolveMainFile() {
+		IFile configured = configuredMainFile();
+		if (configured != null && (!configured.exists() || configured.getLocation() == null)) {
+			showStatus("The main file " + configured.getProjectRelativePath() + " of project "
+					+ configured.getProject().getName() + " does not exist. Set a new one or clear it (EcTeX menu).", true);
+			return null;
+		}
+		File main = getMainFile();
+		if (main == null) {
+			showStatus("EcTeX can only build documents stored in the local file system.", true);
+		}
+		return main;
+	}
+
+	/** Makes this file the main file of its project (EcTeX menu). */
+	public void setAsMainFile() {
+		if (!(getEditorInput() instanceof IFileEditorInput input)) {
+			showStatus("A main file can only be set for a file that belongs to a project in the workspace.", true);
+			return;
+		}
+		IFile file = input.getFile();
+		try {
+			MainFile.set(file);
+		} catch (BackingStoreException e) {
+			Activator.log("Cannot save the main file of project " + file.getProject().getName(), e);
+			showStatus("Cannot save the main file setting: " + e.getMessage(), true);
+			return;
+		}
+		showStatus("Main file of project " + file.getProject().getName() + ": " + file.getProjectRelativePath()
+				+ ". Build, BibTeX, the PDF Preview and sync now use it.", false);
+		refreshPdfView();
+	}
+
+	/** Removes the main file setting of this editor's project (EcTeX menu). */
+	public void clearMainFile() {
+		if (!(getEditorInput() instanceof IFileEditorInput input) || configuredMainFile() == null) {
+			showStatus("No main file is set for this project.", false);
+			return;
+		}
+		IProject project = input.getFile().getProject();
+		try {
+			MainFile.clear(project);
+		} catch (BackingStoreException e) {
+			Activator.log("Cannot clear the main file of project " + project.getName(), e);
+			showStatus("Cannot save the main file setting: " + e.getMessage(), true);
+			return;
+		}
+		showStatus("Main file of project " + project.getName() + " cleared: each file is built on its own again.", false);
+		refreshPdfView();
+	}
+
+	private void refreshPdfView() {
+		PdfView view = findPdfView();
+		if (view != null) {
+			view.setEditor(this, true);
+		}
+	}
+
+	/** Extra advice for a failed build of a file that has no \documentclass and no main file is set. */
+	private String missingDocumentClassHint() {
+		if (configuredMainFile() != null || getEditorInput() == null || getDocumentProvider() == null) {
+			return "";
+		}
+		IDocument document = getDocumentProvider().getDocument(getEditorInput());
+		if (document == null || document.get().contains("\\documentclass")) {
+			return "";
+		}
+		return " This file has no \\documentclass: if it is part of a larger document, open the main file and use"
+				+ " EcTeX > Set as Main File.";
+	}
+
+	/** Saves this editor and the other dirty editors of the same project, so a build sees all edits. */
+	private boolean saveProjectEditors() {
+		IWorkbenchPage page = getSite().getPage();
+		IProject project = getEditorInput() instanceof IFileEditorInput input ? input.getFile().getProject() : null;
+		for (IEditorPart dirty : page.getDirtyEditors()) {
+			boolean related = dirty == this || (project != null && dirty.getEditorInput() instanceof IFileEditorInput other
+					&& project.equals(other.getFile().getProject()));
+			if (related && !page.saveEditor(dirty, false)) {
+				return false; // save failed or was cancelled
+			}
+		}
+		return true;
+	}
+
 	// ---------------------------------------------------------------- build and bibtex commands
 
-	/** Saves the document, runs pdflatex and refreshes the PDF view when it succeeds. */
+	/**
+	 * Saves the project's edited files, runs pdflatex on the main file (this editor's file unless the
+	 * project has a main file) and refreshes the PDF view when it succeeds.
+	 */
 	public void buildPdf() {
-		File tex = getTexFile();
-		if (tex == null) {
-			showStatus("EcTeX can only build documents stored in the local file system.", true);
+		File main = resolveMainFile();
+		if (main == null || isBusy() || !saveProjectEditors()) {
 			return;
 		}
-		if (isBusy()) {
-			return;
-		}
-		if (isDirty() && !getSite().getPage().saveEditor(this, false)) {
-			return; // save failed or was cancelled
-		}
-		showStatus("Running pdflatex on " + tex.getName() + " ...", false);
+		boolean viaMainFile = !main.equals(getTexFile());
+		showStatus("Running pdflatex on " + main.getName() + (viaMainFile ? " (main file)" : "") + " ...", false);
 		IWorkbenchPage page = getSite().getPage();
-		buildJob = new BuildJob(tex, BuildJob.Tool.PDFLATEX, success -> {
+		buildJob = new BuildJob(main, BuildJob.Tool.PDFLATEX, success -> {
 			if (success) {
-				showStatus("pdflatex finished: " + tex.getName(), false);
+				showStatus("pdflatex finished: " + main.getName(), false);
 				PdfView view = PdfView.show(page);
 				if (view != null) {
 					view.setEditor(this, true);
 				}
 			} else {
-				showStatus("pdflatex failed - see the \"EcTeX Build\" console.", true);
+				showStatus("pdflatex failed - see the \"EcTeX Build\" console." + missingDocumentClassHint(), true);
 			}
 		});
 		buildJob.schedule();
 	}
 
-	/** Runs bibtex on the .aux file written by the last pdflatex run. */
+	/** Runs bibtex on the .aux file that the last pdflatex run wrote for the main file. */
 	public void runBibtex() {
-		File tex = getTexFile();
-		if (tex == null) {
-			showStatus("EcTeX can only run bibtex for documents stored in the local file system.", true);
+		File main = resolveMainFile();
+		if (main == null || isBusy()) {
 			return;
 		}
-		if (isBusy()) {
-			return;
-		}
-		File aux = new File(tex.getParentFile(), baseName(tex) + ".aux");
+		File aux = new File(main.getParentFile(), baseName(main) + ".aux");
 		if (!aux.isFile()) {
 			showStatus("No " + aux.getName() + " yet - run pdflatex first (" + Commands.howTo(Commands.BUILD)
 					+ ") so bibtex has citations to resolve.", true);
 			return;
 		}
 		showStatus("Running bibtex on " + aux.getName() + " ...", false);
-		buildJob = new BuildJob(tex, BuildJob.Tool.BIBTEX, success -> {
+		buildJob = new BuildJob(main, BuildJob.Tool.BIBTEX, success -> {
 			if (success) {
 				showStatus("bibtex finished - run pdflatex twice (" + Commands.howTo(Commands.BUILD)
 						+ ") to update the citations in the PDF.", false);
@@ -196,6 +294,10 @@ public class EcTeXEditor extends TextEditor {
 
 	/** Source -> PDF: highlights the PDF location that corresponds to the caret line. */
 	public void forwardSearch() {
+		File main = resolveMainFile();
+		if (main == null) {
+			return;
+		}
 		File tex = getTexFile();
 		File pdf = getPdfFile();
 		if (tex == null || pdf == null || !pdf.isFile()) {
@@ -211,7 +313,7 @@ public class EcTeXEditor extends TextEditor {
 		Display display = getSite().getShell().getDisplay();
 		Job job = Job.create("EcTeX forward search", monitor -> {
 			try {
-				SyncTex.ForwardResult r = SyncTex.forward(tex.getParentFile(), tex, pdf.getName(), line, 0);
+				SyncTex.ForwardResult r = SyncTex.forward(main.getParentFile(), tex, pdf.getName(), line, 0);
 				display.asyncExec(() -> {
 					if (r == null) {
 						showStatus("SyncTeX has no PDF location for line " + line + " (rebuild: "
@@ -231,16 +333,15 @@ public class EcTeXEditor extends TextEditor {
 
 	/** PDF -> source: jumps to the source line that produced the text at the given PDF position. */
 	public void inverseSearch(PdfViewer.PdfPoint point) {
-		File tex = getTexFile();
+		File main = resolveMainFile();
 		File pdf = getPdfFile();
-		if (tex == null || pdf == null) {
-			showStatus("EcTeX can only synchronise documents stored in the local file system.", true);
+		if (main == null || pdf == null) {
 			return;
 		}
 		Display display = getSite().getShell().getDisplay();
 		Job job = Job.create("EcTeX inverse search", monitor -> {
 			try {
-				SyncTex.InverseResult r = SyncTex.inverse(tex.getParentFile(), pdf.getName(), point.page(), point.x(),
+				SyncTex.InverseResult r = SyncTex.inverse(main.getParentFile(), pdf.getName(), point.page(), point.x(),
 						point.y());
 				display.asyncExec(() -> {
 					if (getSite().getShell().isDisposed()) {

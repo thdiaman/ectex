@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -53,7 +54,7 @@ public class BuildJob extends Job {
 		}
 	}
 
-	/** Matches "./main.tex:12: Undefined control sequence." (pdflatex -file-line-error). */
+	/** Matches "chapters/ch2.tex:12: Undefined control sequence." (pdflatex -file-line-error). */
 	private static final Pattern ERROR_LINE = Pattern.compile("^(.+?):(\\d+):\\s*(.*)$");
 
 	private final File texFile;
@@ -135,23 +136,31 @@ public class BuildJob extends Job {
 	 * markers with the errors of this run.
 	 */
 	private void updateWorkspace(List<String> output, boolean updateMarkers) {
-		IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(texFile.toURI());
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		IFile[] files = root.findFilesForLocationURI(texFile.toURI());
 		if (files.length == 0) {
 			return; // file lives outside the workspace
 		}
-		IFile file = files[0];
+		IFile mainFile = files[0];
 		try {
 			ResourcesPlugin.getWorkspace().run(monitor -> {
 				if (updateMarkers) {
-					for (IMarker marker : file.findMarkers(IMarker.PROBLEM, false, IResource.DEPTH_ZERO)) {
+					// Errors can be in any file the main file includes: replace the markers of the whole project.
+					for (IMarker marker : mainFile.getProject().findMarkers(IMarker.PROBLEM, false,
+							IResource.DEPTH_INFINITE)) {
 						if (Activator.PLUGIN_ID.equals(marker.getAttribute(IMarker.SOURCE_ID))) {
 							marker.delete();
 						}
 					}
 					for (String line : output) {
 						Matcher m = ERROR_LINE.matcher(line);
-						if (m.matches() && m.group(1).replace('\\', '/').endsWith(texFile.getName())) {
-							IMarker marker = file.createMarker(IMarker.PROBLEM);
+						if (!m.matches()) {
+							continue;
+						}
+						File source = sourceFile(texFile.getParentFile(), m.group(1));
+						IFile[] sourceFiles = source == null ? new IFile[0] : root.findFilesForLocationURI(source.toURI());
+						if (sourceFiles.length > 0) {
+							IMarker marker = sourceFiles[0].createMarker(IMarker.PROBLEM);
 							marker.setAttributes(Map.<String, Object>of(
 									IMarker.MESSAGE, m.group(3),
 									IMarker.LINE_NUMBER, Integer.parseInt(m.group(2)),
@@ -160,10 +169,26 @@ public class BuildJob extends Job {
 						}
 					}
 				}
-				file.getParent().refreshLocal(IResource.DEPTH_ONE, monitor);
+				mainFile.getParent().refreshLocal(IResource.DEPTH_ONE, monitor);
 			}, null);
 		} catch (CoreException e) {
-			Activator.log("Cannot update workspace for " + file, e);
+			Activator.log("Cannot update workspace for " + mainFile, e);
 		}
+	}
+
+	/**
+	 * The file named in a "-file-line-error" message, which is relative to the folder pdflatex ran in
+	 * ("chapters/ch2.tex") or absolute.
+	 *
+	 * @param dir folder of the main file
+	 * @return the existing file, or null (e.g. for messages about packages outside the project)
+	 */
+	public static File sourceFile(File dir, String path) {
+		File file = new File(path.replace('\\', '/'));
+		if (!file.isAbsolute()) {
+			file = new File(dir, path);
+		}
+		file = file.toPath().normalize().toFile();
+		return file.isFile() ? file : null;
 	}
 }

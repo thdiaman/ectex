@@ -31,13 +31,37 @@ public final class SyncTex {
 	}
 
 	/**
+	 * The ways SyncTeX may have recorded a source file: MiKTeX records absolute paths, TeX Live usually
+	 * paths relative to the folder of the main file (the folder pdflatex ran in). Most likely form first.
+	 *
+	 * @param dir     folder of the main file
+	 * @param texFile the source file, the main file itself or a file it includes
+	 */
+	public static List<String> candidatePaths(File dir, File texFile) {
+		List<String> candidates = new ArrayList<>();
+		candidates.add(texFile.getAbsolutePath());
+		String relative;
+		try {
+			relative = dir.toPath().toAbsolutePath().normalize().relativize(texFile.toPath().toAbsolutePath().normalize())
+					.toString().replace('\\', '/');
+		} catch (IllegalArgumentException e) {
+			relative = texFile.getName(); // different drive: no relative path exists
+		}
+		if (!relative.startsWith("..")) {
+			candidates.add("./" + relative);
+		}
+		candidates.add(relative);
+		return candidates;
+	}
+
+	/**
+	 * @param dir     folder of the main file (where pdflatex ran and the PDF is)
+	 * @param texFile the source file the caret is in: the main file itself or a file it includes
 	 * @return the PDF location, or null if SyncTeX has no entry for that line
 	 */
 	public static ForwardResult forward(File dir, File texFile, String pdfName, int line, int column)
 			throws IOException {
-		// MiKTeX records absolute input paths, TeX Live usually relative ones: try both.
-		String[] candidates = { texFile.getAbsolutePath(), "./" + texFile.getName(), texFile.getName() };
-		for (String candidate : candidates) {
+		for (String candidate : candidatePaths(dir, texFile)) {
 			Map<String, String> result = run(dir, "view", "-i", line + ":" + column + ":" + candidate, "-o", pdfName);
 			if (result != null && result.containsKey("Page")) {
 				double h = number(result, "h", number(result, "x", 0));

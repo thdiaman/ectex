@@ -12,6 +12,8 @@ public final class Commands {
 	public static final String BUILD = "com.ectex.plugin.commands.build";
 	public static final String BIBTEX = "com.ectex.plugin.commands.bibtex";
 	public static final String SYNC = "com.ectex.plugin.commands.sync";
+	public static final String SET_MAIN_FILE = "com.ectex.plugin.commands.setMainFile";
+	public static final String CLEAR_MAIN_FILE = "com.ectex.plugin.commands.clearMainFile";
 
 	private Commands() {
 	}
