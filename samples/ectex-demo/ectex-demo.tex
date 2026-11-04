@@ -62,8 +62,8 @@ PDF preview, build commands and source-to-PDF synchronization
 into a single workspace. By combining the capabilities of an
 existing TeX distribution with the extensibility of Eclipse,
 EcTeX aims to make scientific and technical document preparation
-more convenient. This paper presents its main features,
-development environment and typical workflow.
+more convenient. This document describes its main features,
+technical requirements and typical workflow.
 \end{abstract}
 
 \tableofcontents
@@ -221,7 +221,7 @@ configured through:
 The plug-in has been built and install-tested against
 Eclipse 2026-03.
 
-\section{Limitations and Future Work}
+\section{Known Limitations}
 
 The current version focuses on providing a lightweight
 and integrated LaTeX editing experience.
@@ -229,28 +229,14 @@ and integrated LaTeX editing experience.
 Some known limitations include:
 
 \begin{itemize}[noitemsep]
-    \item Source-to-PDF synchronization is currently
-    supported for the main document file.
+    \item A project has one main file; to build another
+    document of the same project, the main file has to be changed
+    or cleared first.
     \item PDF rendering uses normal resolution, which
     may appear soft on high-DPI displays.
     \item The PDF preview does not currently provide
     text-search functionality.
 \end{itemize}
-
-Future development could explore improved PDF rendering,
-document search, more advanced LaTeX completion and
-additional build-system integrations.
-
-\section{Conclusion}
-
-EcTeX brings essential LaTeX editing and compilation
-functionality into the Eclipse environment. Its integrated
-editor, PDF preview, build commands and SyncTeX navigation
-provide a unified workflow without requiring users to
-constantly switch between separate applications.
-
-The project is intended to be a practical foundation
-for further development of LaTeX tooling within Eclipse.
 
 \bibliographystyle{plain}
 \bibliography{references}

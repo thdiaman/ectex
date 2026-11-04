@@ -1,0 +1,106 @@
+\section{Features}
+
+\subsection{LaTeX editor}
+
+EcTeX provides a specialized editor for \texttt{.tex} files
+with syntax highlighting. It also offers productivity
+shortcuts for frequently used LaTeX commands.
+
+For example, the following commands are available by
+default:
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Ctrl+B}: Insert \verb|\textbf{}|.
+    \item \textbf{Ctrl+I}: Insert \verb|\textit{}|.
+    \item \textbf{Ctrl+U}: Insert \verb|\underline{}|.
+    \item \textbf{Ctrl+Shift+E}: Insert \verb|\emph{}|.
+    \item \textbf{Ctrl+Shift+M}: Insert inline mathematics.
+\end{itemize}
+
+When text is selected, formatting commands wrap the
+selection. Otherwise, an empty command pair is inserted
+and the caret is placed inside it.
+
+All shortcuts can be customized through the standard
+Eclipse key-binding preferences.
+
+\subsection{Integrated PDF preview}
+
+The PDF Preview view displays the compiled document
+next to the source editor. It automatically follows the
+active LaTeX file and loads the corresponding PDF.
+
+The preview supports:
+\begin{itemize}[noitemsep]
+    \item Mouse-wheel scrolling.
+    \item Zooming using Ctrl+mouse wheel or keyboard
+    shortcuts.
+    \item Fit-to-width and zoom commands.
+    \item Highlighting of synchronized source locations.
+\end{itemize}
+
+PDF rendering is provided through Apache PDFBox
+\cite{pdfbox}.
+
+\subsection{Build integration}
+
+EcTeX integrates the standard \texttt{pdflatex} and
+\texttt{bibtex} command-line tools.
+
+The default build commands are:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Shortcut} & \textbf{Operation} \\
+\midrule
+Ctrl+F2 & Build PDF using pdflatex \\
+Ctrl+F3 & Run BibTeX \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The PDF build executes:
+
+\begin{lstlisting}
+pdflatex -interaction=nonstopmode \
+         -file-line-error \
+         -synctex=1
+\end{lstlisting}
+
+Compiler output is displayed in the EcTeX Build console.
+LaTeX errors are also reported through Eclipse problem
+markers.
+
+For documents containing bibliographic references,
+the recommended compilation sequence is:
+
+\begin{enumerate}[noitemsep]
+    \item Run PDFLaTeX.
+    \item Run BibTeX.
+    \item Run PDFLaTeX again.
+    \item Run PDFLaTeX once more.
+\end{enumerate}
+
+\subsection{Documents with several files}
+
+Larger documents are often split over several files, as this document is.
+One file of a project can be marked as the \emph{main file} with the menu
+command \texttt{EcTeX $\rightarrow$ Set as Main File}; the setting is stored
+per project and removed again with \texttt{Clear Main File}. These commands
+have no default key, but can be bound like any other shortcut.
+
+With a main file set, working in any file of the project behaves as if the
+main file were open:
+
+\begin{itemize}[noitemsep]
+    \item Build and BibTeX run on the main file, after saving the
+    project's unsaved files.
+    \item The PDF preview shows the PDF of the main file.
+    \item Forward synchronization works from every file, and inverse
+    synchronization opens the file that contains the clicked text.
+    \item Compilation errors are reported on the file that contains them.
+\end{itemize}
+
+To try it, set \texttt{ectex-demo-multifile.tex} as the main file and build
+from any file in the \texttt{sections} folder.

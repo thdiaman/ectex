@@ -12,7 +12,10 @@ with a small website (install, usage, publishing). Rebuild with
 1. Use an Eclipse with PDE (e.g. "Eclipse IDE for RCP and RAP Developers" / Eclipse SDK).
 2. File > Import > General > Existing Projects into Workspace > select this folder.
 3. Right-click the project > Run As > Eclipse Application.
-4. In the runtime workbench open `samples/sample.tex`. The PDF Preview view opens next to the editor
+4. In the runtime workbench, import the sample projects: File > Import > General > Existing Projects into
+   Workspace > select the `samples` folder at the root of this repository (`../samples`). It contains
+   `ectex-demo` (one file) and `ectex-demo-multifile` (the same document split into files, for the main file
+   feature, see below). Open `ectex-demo.tex` and build it. The PDF Preview view opens next to the editor
    (or use Window > Show View > Other... > EcTeX > PDF Preview). Drag the view anywhere you like.
 
 Requirements on the machine: `pdflatex`, `bibtex` and `synctex` on the PATH (MiKTeX / TeX Live), or set their
@@ -37,8 +40,24 @@ Defaults:
 | `Ctrl+Shift+E` / `Ctrl+Shift+M` | `\emph{}` / `$ $` |
 
 PDF view: wheel scrolls, `Ctrl`+wheel (or `+` / `-`) zooms, right-click for "Fit Width".
-The view follows the active `.tex` editor (editors without a PDF of their own, e.g. `\input`-ed sub-files,
-leave it unchanged).
+The view follows the active `.tex` editor and shows the PDF of that editor's document (the project's main file
+if one is set); an editor whose document has no PDF yet leaves the view unchanged.
+
+## Documents with several files (main file)
+Menu commands, no default key (bind them under Preferences > General > Keys if you like):
+
+| Menu | Action |
+|---|---|
+| `EcTeX > Set as Main File` | Make the file in the active editor the main file of its project |
+| `EcTeX > Clear Main File` | Remove the main file of the project; each file is built on its own again |
+
+With a main file set, in every `.tex` file of the project: build and BibTeX run on the main file (in its folder,
+after saving the project's unsaved files), the PDF view shows the main file's PDF, forward search works from any
+file, inverse search opens the file that produced the text, and LaTeX errors become markers on the file that
+contains them. The setting is saved per project in `.settings/com.ectex.plugin.prefs`. There is one main file per
+project: to build another document of the same project, set another main file or clear it. Main files only work
+for files in a workspace project. Try it with the `ectex-demo-multifile` sample: set
+`ectex-demo-multifile.tex` as the main file, then build and sync from any file in its `sections` folder.
 
 ## Notes
 * PDF rendering uses the bundled Apache PDFBox 2.0.31 (`lib/`, Apache License 2.0).

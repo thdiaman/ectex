@@ -30,11 +30,26 @@
   <h2>Build</h2>
   <div class="table-scroll"><table>
     <tr><th>Default key</th><th>Command</th></tr>
-    <tr><td><kbd>Ctrl</kbd>+<kbd>F2</kbd></td><td><strong>Build PDF</strong>: saves the file, runs <code>pdflatex -interaction=nonstopmode -file-line-error -synctex=1</code>, and reloads the PDF if it succeeded.</td></tr>
-    <tr><td><kbd>Ctrl</kbd>+<kbd>F3</kbd></td><td><strong>Run BibTeX</strong>: runs <code>bibtex</code> on the document. It needs the <code>.aux</code> file from an earlier build.</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>F2</kbd></td><td><strong>Build PDF</strong>: saves the file, runs <code>pdflatex -interaction=nonstopmode -file-line-error -synctex=1</code>, and reloads the PDF if it succeeded. It runs on the project's <a href="#main-file-note">main file</a> if one is set.</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>F3</kbd></td><td><strong>Run BibTeX</strong>: runs <code>bibtex</code> on the document (or on the main file). It needs the <code>.aux</code> file from an earlier build.</td></tr>
   </table></div>
   <p>Output goes to the <strong>EcTeX Build</strong> console. LaTeX errors become problem markers in the editor and the Problems view.</p>
   <p>Typical sequence for a document with citations: <em>Build, BibTeX, Build, Build</em>. BibTeX does not rebuild the PDF by itself. For biblatex projects set the bibtex command to <code>biber</code> in the preferences.</p>
+
+  <h2 id="main-file-note">Documents with several files (main file)</h2>
+  <p>When a document is split over several files (<code>main.tex</code> with <code>\input{chapters/ch1}</code> and so on), tell EcTeX which file is the <strong>main file</strong>:</p>
+  <ol>
+    <li>Open the main file, for example <code>main.tex</code>, in the EcTeX editor.</li>
+    <li>Choose <strong>EcTeX &gt; Set as Main File</strong> from the menu bar. (The EcTeX menu appears while an EcTeX editor is active; the two commands have no default key, but you can bind them in <em>Preferences &gt; General &gt; Keys</em>.)</li>
+  </ol>
+  <p>From then on, in <em>every</em> <code>.tex</code> file of that project:</p>
+  <ul>
+    <li><strong>Build</strong> and <strong>Run BibTeX</strong> work on the main file, in its folder. Before building, EcTeX saves all unsaved files of the project, so edits in the chapters are included.</li>
+    <li>The <strong>PDF Preview</strong> shows the main file's PDF and names the document under its tab (&ldquo;Document: main.tex&rdquo;). Moving between the files of the project keeps the PDF and its scroll position.</li>
+    <li><strong>Forward search</strong> (<kbd>Ctrl</kbd>+<kbd>Space</kbd>) works from a chapter, and <strong>inverse search</strong> opens the chapter that produced the text.</li>
+    <li><strong>LaTeX errors</strong> become problem markers on the file that contains them, not only on the main file.</li>
+  </ul>
+  <p>The setting is stored per project in <code>.settings/com.ectex.plugin.prefs</code>, so it can be committed with the project. <strong>EcTeX &gt; Clear Main File</strong> removes it, and each file is then built on its own again. There is one main file per project: to build a different document of the same project, set another main file or clear it first. Without a main file nothing changes; every file is built on its own.</p>
 
   <h2>Jump between source and PDF (SyncTeX)</h2>
   <ul>
@@ -67,12 +82,17 @@
   <p>Build once with <kbd>Ctrl</kbd>+<kbd>F2</kbd> so the <code>.synctex.gz</code> file exists and matches the current text, and make sure <code>synctex</code> is available. The status line shows the reason when a jump fails. Edits since the last build can shift line numbers.</p>
   <h3>A shortcut does nothing or triggers something else</h3>
   <p>Open <em>Preferences &gt; General &gt; Keys</em>, filter by the key, and look for conflicts in the <em>Conflicts</em> column. Some systems reserve <kbd>Ctrl</kbd>+<kbd>Space</kbd> for switching input languages; rebind <em>Synchronize</em> in that case.</p>
+  <h3>&ldquo;This file has no \documentclass&rdquo; after a failed build</h3>
+  <p>The file is probably a chapter of a larger document. Open the main file and use <em>EcTeX &gt; Set as Main File</em>.</p>
+  <h3>&ldquo;The main file &hellip; does not exist&rdquo;</h3>
+  <p>The main file stored for the project was renamed, moved or deleted. Open the right file and use <em>EcTeX &gt; Set as Main File</em>, or use <em>Clear Main File</em>.</p>
   <h3>The PDF Preview is blank after a build</h3>
   <p>Look at the <strong>EcTeX Build</strong> console: if <code>pdflatex</code> failed, the previous PDF stays displayed.</p>
 
   <h2>Known limits</h2>
   <ul>
-    <li>Sync is reliable for the file being compiled; with <code>\input</code>-ed sub-files, PDF to source can open them, but source to PDF is only supported for the main file.</li>
+    <li>A project has one main file. To build another document of the same project, set another main file or clear it first.</li>
+    <li>A main file can only be set for files that belong to a project in the workspace, not for files opened from elsewhere on disk.</li>
     <li>The PDF is rendered at normal resolution, so text can look soft on high-DPI screens.</li>
     <li>The PDF Preview has no text search.</li>
   </ul>

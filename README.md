@@ -6,6 +6,8 @@ Tex editor and builder plugin for the Eclipse IDE.
 - **PDF Preview** view next to the editor (zoom, scroll, highlight of the synced spot)
 - `Ctrl+F2` runs `pdflatex`, `Ctrl+F3` runs `bibtex`
 - `Ctrl+Space` / `Ctrl+click` jump between source and PDF (SyncTeX forward and inverse search)
+- Documents split over several files: set a **main file** per project (EcTeX menu), and build, BibTeX, the PDF
+  and sync work from every file of the project
 - Productivity shortcuts such as `Ctrl+B` for `\textbf{}`; every shortcut can be changed in
   Preferences > General > Keys (filter "EcTeX")
 
@@ -40,12 +42,15 @@ The content is not signed, so Eclipse shows an "unsigned content" warning on ins
 | `com.ectex.plugin/` | The Eclipse plug-in (Java sources, `plugin.xml`, bundled PDFBox in `lib/`). See its [README](com.ectex.plugin/README.md) |
 | `com.ectex.feature/` | Feature that wraps the plug-in for installation |
 | `com.ectex.updatesite/` | The p2 update site (generated files) and the project website (`index.html`, `usage.html`, `publish.html`) |
+| `samples/` | Two ready-to-use LaTeX projects: `ectex-demo` (one file) and `ectex-demo-multifile` (the same document split into files, for trying the main file feature) |
 | `.github/workflows/pages.yml` | Publishes `com.ectex.updatesite/` with GitHub Pages |
 
 ## Develop
 
 1. Eclipse with PDE (e.g. the Eclipse SDK): File > Import > Existing Projects into Workspace > select this folder.
 2. Right-click `com.ectex.plugin` > Run As > Eclipse Application.
+3. In the runtime workbench, import the two projects in `samples/` (File > Import > Existing Projects into
+   Workspace) and try the editor, builds and sync on them.
 
 ## Release a new version
 

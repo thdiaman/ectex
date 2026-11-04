@@ -10,13 +10,18 @@ com.ectex.updatesite/dist/
 .DS_Store
 Thumbs.db
 
-# Demo
-com.ectex.plugin/ectex-demo/*.aux
-com.ectex.plugin/ectex-demo/*.bbl
-com.ectex.plugin/ectex-demo/*.toc
-com.ectex.plugin/ectex-demo/*.synctex.gz
-com.ectex.plugin/ectex-demo/*.out
-com.ectex.plugin/ectex-demo/*.log
-com.ectex.plugin/ectex-demo/*.bbl
-com.ectex.plugin/ectex-demo/*.blg
-com.ectex.plugin/ectex-demo/*.pdf
+# Build output of the sample documents (pdflatex / bibtex / SyncTeX), also in their subfolders
+samples/**/*.aux
+samples/**/*.bbl
+samples/**/*.blg
+samples/**/*.log
+samples/**/*.out
+samples/**/*.toc
+samples/**/*.lof
+samples/**/*.lot
+samples/**/*.fls
+samples/**/*.fdb_latexmk
+samples/**/*.bcf
+samples/**/*.run.xml
+samples/**/*.synctex.gz
+samples/**/*.pdf

@@ -1,0 +1,25 @@
+\section{Source and PDF Synchronization}
+
+One of the central features of EcTeX is bidirectional
+navigation between the LaTeX source and its compiled PDF.
+
+This functionality is implemented using SyncTeX
+\cite{synctex}.
+
+\subsection{Forward synchronization}
+
+Forward synchronization moves from the source editor
+to the corresponding location in the PDF.
+
+The user places the caret on a source line and presses
+\texttt{Ctrl+Space}. The PDF preview scrolls to the
+corresponding position and briefly highlights it.
+
+\subsection{Inverse synchronization}
+
+Inverse synchronization performs the opposite operation.
+The user holds Ctrl and clicks on text in the PDF preview.
+EcTeX then navigates to the corresponding source location.
+
+This makes it easier to locate formatting problems,
+review generated content and navigate longer documents.

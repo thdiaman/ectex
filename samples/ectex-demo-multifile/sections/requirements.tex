@@ -1,0 +1,23 @@
+\section{Technical Requirements}
+
+EcTeX is implemented as an Eclipse plug-in and requires:
+
+\begin{itemize}[noitemsep]
+    \item Eclipse IDE with Java 17 or newer.
+    \item A compatible TeX distribution, such as TeX Live
+    or MiKTeX.
+    \item The \texttt{pdflatex}, \texttt{bibtex} and
+    \texttt{synctex} executables.
+    \item Apache PDFBox 2.0.31 for PDF rendering.
+\end{itemize}
+
+If the required executables are not available through
+the system \texttt{PATH}, their locations can be
+configured through:
+
+\begin{center}
+\textit{Window $\rightarrow$ Preferences $\rightarrow$ EcTeX}
+\end{center}
+
+The plug-in has been built and install-tested against
+Eclipse 2026-03.
