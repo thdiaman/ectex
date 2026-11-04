@@ -4,7 +4,7 @@ Tex editor and builder plugin for the Eclipse IDE.
 
 - LaTeX editor for `.tex` files with syntax highlighting
 - **PDF Preview** view next to the editor (zoom, scroll, highlight of the synced spot)
-- `Ctrl+F1` runs `pdflatex`, `Ctrl+F2` runs `bibtex`
+- `Ctrl+F2` runs `pdflatex`, `Ctrl+F3` runs `bibtex`
 - `Ctrl+Space` / `Ctrl+click` jump between source and PDF (SyncTeX forward and inverse search)
 - Productivity shortcuts such as `Ctrl+B` for `\textbf{}`; every shortcut can be changed in
   Preferences > General > Keys (filter "EcTeX")
