@@ -44,8 +44,11 @@ PDF rendering is provided through Apache PDFBox
 
 \subsection{Build integration}
 
-EcTeX integrates the standard \texttt{pdflatex} and
-\texttt{bibtex} command-line tools.
+EcTeX integrates the standard command-line tools of a TeX
+distribution: a LaTeX engine (\texttt{pdflatex} by default, or
+\texttt{xelatex} or \texttt{lualatex}) and a bibliography tool
+(\texttt{bibtex} by default, or \texttt{biber}). Both are chosen
+in the preferences.
 
 The default build commands are:
 
@@ -54,13 +57,14 @@ The default build commands are:
 \toprule
 \textbf{Shortcut} & \textbf{Operation} \\
 \midrule
-Ctrl+F2 & Build PDF using pdflatex \\
-Ctrl+F3 & Run BibTeX \\
+Ctrl+F2 & Build PDF (one LaTeX pass) \\
+Ctrl+F3 & Run the bibliography tool \\
+Ctrl+F5 & Build All \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The PDF build executes:
+A LaTeX pass executes:
 
 \begin{lstlisting}
 pdflatex -interaction=nonstopmode \
@@ -76,11 +80,15 @@ For documents containing bibliographic references,
 the recommended compilation sequence is:
 
 \begin{enumerate}[noitemsep]
-    \item Run PDFLaTeX.
-    \item Run BibTeX.
-    \item Run PDFLaTeX again.
-    \item Run PDFLaTeX once more.
+    \item Run LaTeX.
+    \item Run the bibliography tool.
+    \item Run LaTeX again.
+    \item Run LaTeX once more.
 \end{enumerate}
+
+Build All performs exactly this sequence and stops at the
+first error. For documents without a bibliography, the
+preferences offer the shorter sequence of two LaTeX passes.
 
 \subsection{Documents with several files}
 

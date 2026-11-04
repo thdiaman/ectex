@@ -69,14 +69,20 @@
       </category>
       <command
             id="com.ectex.plugin.commands.build"
-            name="Build PDF (pdflatex)"
-            description="Run pdflatex on the active .tex file and refresh the PDF view"
+            name="Build PDF (one LaTeX pass)"
+            description="Run the LaTeX engine once on the active .tex file (or the main file of its project) and refresh the PDF view"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.buildAll"
+            name="Build All"
+            description="Run the Build All sequence from Preferences > EcTeX: LaTeX, bibliography tool, LaTeX, LaTeX (or LaTeX, LaTeX)"
             categoryId="com.ectex.plugin.category">
       </command>
       <command
             id="com.ectex.plugin.commands.bibtex"
-            name="Run BibTeX"
-            description="Run bibtex on the active .tex file (after a pdflatex run)"
+            name="Run Bibliography Tool"
+            description="Run the bibliography tool from Preferences > EcTeX (BibTeX or Biber) on the active .tex file (after a LaTeX run)"
             categoryId="com.ectex.plugin.category">
       </command>
       <command
@@ -154,8 +160,22 @@
          </activeWhen>
       </handler>
       <handler
+            commandId="com.ectex.plugin.commands.buildAll"
+            class="com.ectex.plugin.handlers.BuildAllHandler">
+         <activeWhen>
+            <or>
+               <with variable="activeEditorId">
+                  <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+               </with>
+               <with variable="activePartId">
+                  <equals value="com.ectex.plugin.views.PdfView"/>
+               </with>
+            </or>
+         </activeWhen>
+      </handler>
+      <handler
             commandId="com.ectex.plugin.commands.bibtex"
-            class="com.ectex.plugin.handlers.BibtexHandler">
+            class="com.ectex.plugin.handlers.BibliographyHandler">
          <activeWhen>
             <or>
                <with variable="activeEditorId">
@@ -261,6 +281,12 @@
             sequence="M1+F3">
       </key>
       <key
+            commandId="com.ectex.plugin.commands.buildAll"
+            contextId="com.ectex.plugin.contexts.editor"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+F5">
+      </key>
+      <key
             commandId="com.ectex.plugin.commands.sync"
             contextId="com.ectex.plugin.contexts.editor"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
@@ -329,12 +355,17 @@
             </separator>
             <command
                   commandId="com.ectex.plugin.commands.build"
-                  label="Build PDF"
+                  label="Build PDF (one LaTeX pass)"
+                  style="push">
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.buildAll"
+                  label="Build All"
                   style="push">
             </command>
             <command
                   commandId="com.ectex.plugin.commands.bibtex"
-                  label="Run BibTeX"
+                  label="Run Bibliography Tool"
                   style="push">
             </command>
             <command

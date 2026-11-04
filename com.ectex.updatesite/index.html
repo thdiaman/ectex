@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EcTeX - LaTeX for Eclipse</title>
-<meta name="description" content="EcTeX: a LaTeX editor with a PDF preview, pdflatex/bibtex builds and SyncTeX sync for Eclipse. Install from this update site.">
+<meta name="description" content="EcTeX: a LaTeX editor with a PDF preview, one-key LaTeX builds (BibTeX or Biber) and SyncTeX sync for Eclipse. Install from this update site.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,12 +21,12 @@
 
 <main class="wrap">
   <h1>EcTeX &ndash; LaTeX for Eclipse</h1>
-  <p class="lead">A LaTeX editor with a live PDF Preview, one-key pdflatex and bibtex builds, and jumping between source and PDF with SyncTeX.</p>
+  <p class="lead">A LaTeX editor with a live PDF Preview, one-key LaTeX builds (with BibTeX or Biber), and jumping between source and PDF with SyncTeX.</p>
 
   <ul>
     <li>Editor for <code>.tex</code> files with syntax highlighting</li>
     <li><strong>PDF Preview</strong> view next to the editor (zoom, scroll, highlight of the synced spot)</li>
-    <li><kbd>Ctrl</kbd>+<kbd>F2</kbd> runs <code>pdflatex</code>, <kbd>Ctrl</kbd>+<kbd>F3</kbd> runs <code>bibtex</code></li>
+    <li><kbd>Ctrl</kbd>+<kbd>F2</kbd> builds the PDF, <kbd>Ctrl</kbd>+<kbd>F3</kbd> runs the bibliography tool (BibTeX or Biber), <kbd>Ctrl</kbd>+<kbd>F5</kbd> runs <strong>Build All</strong> (LaTeX, bibliography, LaTeX, LaTeX)</li>
     <li><kbd>Ctrl</kbd>+<kbd>Space</kbd> / <kbd>Ctrl</kbd>+click jump between the source and the PDF</li>
     <li><strong>LaTeX projects:</strong> a New LaTeX Project wizard, a LaTeX perspective, and conversion of existing projects</li>
     <li>Documents split over several files: set a <strong>main file</strong> per project, and build, BibTeX, the PDF and sync work from every file</li>
@@ -36,7 +36,7 @@
   <h2>Requirements</h2>
   <ul>
     <li><strong>Eclipse</strong> running on <strong>Java 17 or newer</strong>. Built and install-tested against Eclipse 2026-03.</li>
-    <li>A TeX distribution (<a href="https://miktex.org/">MiKTeX</a> or <a href="https://tug.org/texlive/">TeX Live</a>) with <code>pdflatex</code>, <code>bibtex</code> and <code>synctex</code> on the <code>PATH</code>. If they are not on the <code>PATH</code>, set their locations in <em>Window &gt; Preferences &gt; EcTeX</em>.</li>
+    <li>A TeX distribution (<a href="https://miktex.org/">MiKTeX</a> or <a href="https://tug.org/texlive/">TeX Live</a>) with <code>pdflatex</code> (or <code>xelatex</code> / <code>lualatex</code>), <code>bibtex</code> (or <code>biber</code>) and <code>synctex</code> on the <code>PATH</code>. If they are not on the <code>PATH</code>, set their locations in <em>Window &gt; Preferences &gt; EcTeX</em>.</li>
   </ul>
 
   <h2>Install</h2>

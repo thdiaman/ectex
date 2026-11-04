@@ -4,11 +4,12 @@ Tex editor and builder plugin for the Eclipse IDE.
 
 - LaTeX editor for `.tex` files with syntax highlighting
 - **PDF Preview** view next to the editor (zoom, scroll, highlight of the synced spot)
-- `Ctrl+F2` runs `pdflatex`, `Ctrl+F3` runs `bibtex`
+- `Ctrl+F2` builds the PDF (one LaTeX pass), `Ctrl+F3` runs the bibliography tool (BibTeX or Biber), `Ctrl+F5` runs
+  **Build All** (LaTeX, bibliography, LaTeX, LaTeX)
 - `Ctrl+Space` / `Ctrl+click` jump between source and PDF (SyncTeX forward and inverse search)
 - **LaTeX projects:** a New LaTeX Project wizard, a LaTeX perspective, and *Convert to LaTeX Project* for existing
   projects (right-click the project > Configure)
-- Documents split over several files: set a **main file** per project (right-click a `.tex` file > EcTeX), and build, BibTeX, the PDF
+- Documents split over several files: set a **main file** per project (right-click a `.tex` file > EcTeX), and build, the bibliography tool, the PDF
   and sync work from every file of the project
 - Productivity shortcuts such as `Ctrl+B` for `\textbf{}`; every shortcut can be changed in
   Preferences > General > Keys (filter "EcTeX")
@@ -30,8 +31,8 @@ In Eclipse: **Help > Install New Software… > Add…** and enter
 https://thdiaman.github.io/ectex/
 ```
 
-Requirements: Eclipse on Java 17 or newer, and a TeX distribution (MiKTeX or TeX Live) with `pdflatex`,
-`bibtex` and `synctex` on the `PATH`. Install, usage and troubleshooting details are on the project site:
+Requirements: Eclipse on Java 17 or newer, and a TeX distribution (MiKTeX or TeX Live) with `pdflatex`
+(or `xelatex` / `lualatex`), `bibtex` (or `biber`) and `synctex` on the `PATH`. Install, usage and troubleshooting details are on the project site:
 <https://thdiaman.github.io/ectex/>. An offline copy of the update site (`ectex-updatesite-<version>.zip`)
 is attached to each GitHub release (Add… > Archive…).
 

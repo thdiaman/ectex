@@ -2,6 +2,7 @@ package com.ectex.plugin.editors;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -31,6 +32,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import com.ectex.plugin.Activator;
 import com.ectex.plugin.Commands;
 import com.ectex.plugin.build.BuildJob;
+import com.ectex.plugin.build.BuildPlan;
+import com.ectex.plugin.preferences.PreferenceConstants;
 import com.ectex.plugin.project.MainFile;
 import com.ectex.plugin.sync.SyncTex;
 import com.ectex.plugin.views.PdfView;
@@ -192,10 +195,10 @@ public class EcTeXEditor extends TextEditor {
 		return true;
 	}
 
-	// ---------------------------------------------------------------- build and bibtex commands
+	// ---------------------------------------------------------------- build commands
 
 	/**
-	 * Saves the project's edited files, runs pdflatex on the main file (this editor's file unless the
+	 * Saves the project's edited files, runs one LaTeX pass on the main file (this editor's file unless the
 	 * project has a main file) and refreshes the PDF view when it succeeds.
 	 */
 	public void buildPdf() {
@@ -204,46 +207,78 @@ public class EcTeXEditor extends TextEditor {
 			return;
 		}
 		boolean viaMainFile = !main.equals(getTexFile());
-		showStatus("Running pdflatex on " + main.getName() + (viaMainFile ? " (main file)" : "") + " ...", false);
+		showStatus("Running LaTeX on " + main.getName() + (viaMainFile ? " (main file)" : "") + " ...", false);
 		IWorkbenchPage page = getSite().getPage();
-		buildJob = new BuildJob(main, BuildJob.Tool.PDFLATEX, success -> {
+		buildJob = new BuildJob(main, List.of(BuildPlan.Kind.LATEX), success -> {
 			if (success) {
-				showStatus("pdflatex finished: " + main.getName(), false);
+				showStatus("LaTeX finished: " + main.getName(), false);
 				PdfView view = PdfView.show(page);
 				if (view != null) {
 					view.setEditor(this, true);
 				}
 			} else {
-				showStatus("pdflatex failed - see the \"EcTeX Build\" console." + missingDocumentClassHint(), true);
+				showStatus("LaTeX failed - see the \"EcTeX Build\" console." + missingDocumentClassHint(), true);
 			}
 		});
 		buildJob.schedule();
 	}
 
-	/** Runs bibtex on the .aux file that the last pdflatex run wrote for the main file. */
-	public void runBibtex() {
+	/**
+	 * Build All: runs the sequence chosen in the preferences (LaTeX, bibliography tool, LaTeX, LaTeX - or just
+	 * LaTeX, LaTeX) on the main file, stops at the first error and refreshes the PDF view when everything succeeded.
+	 */
+	public void buildAll() {
+		File main = resolveMainFile();
+		if (main == null || isBusy() || !saveProjectEditors()) {
+			return;
+		}
+		List<BuildPlan.Kind> kinds = BuildPlan.sequence(
+				Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.BUILD_ALL_SEQUENCE));
+		boolean viaMainFile = !main.equals(getTexFile());
+		showStatus("Build All on " + main.getName() + (viaMainFile ? " (main file)" : "") + ": " + kinds.size()
+				+ " steps ...", false);
+		IWorkbenchPage page = getSite().getPage();
+		buildJob = new BuildJob(main, kinds, success -> {
+			if (success) {
+				showStatus("Build All finished: " + main.getName(), false);
+				PdfView view = PdfView.show(page);
+				if (view != null) {
+					view.setEditor(this, true);
+				}
+			} else {
+				showStatus("Build All failed - see the \"EcTeX Build\" console." + missingDocumentClassHint(), true);
+			}
+		});
+		buildJob.schedule();
+	}
+
+	/**
+	 * Runs the bibliography tool chosen in the preferences (BibTeX or Biber) on the .aux file that the last
+	 * LaTeX run wrote for the main file.
+	 */
+	public void runBibliography() {
 		File main = resolveMainFile();
 		if (main == null || isBusy()) {
 			return;
 		}
 		File aux = new File(main.getParentFile(), baseName(main) + ".aux");
 		if (!aux.isFile()) {
-			showStatus("No " + aux.getName() + " yet - run pdflatex first (" + Commands.howTo(Commands.BUILD)
-					+ ") so bibtex has citations to resolve.", true);
+			showStatus("No " + aux.getName() + " yet - run LaTeX first (" + Commands.howTo(Commands.BUILD)
+					+ ") so the bibliography tool has citations to resolve.", true);
 			return;
 		}
-		showStatus("Running bibtex on " + aux.getName() + " ...", false);
-		buildJob = new BuildJob(main, BuildJob.Tool.BIBTEX, success -> {
+		showStatus("Running the bibliography tool on " + main.getName() + " ...", false);
+		buildJob = new BuildJob(main, List.of(BuildPlan.Kind.BIBLIOGRAPHY), success -> {
 			if (success) {
-				showStatus("bibtex finished - run pdflatex twice (" + Commands.howTo(Commands.BUILD)
-						+ ") to update the citations in the PDF.", false);
+				showStatus("Bibliography tool finished - run LaTeX twice (" + Commands.howTo(Commands.BUILD)
+						+ ") or Build All (" + Commands.howTo(Commands.BUILD_ALL) + ") to update the citations in the PDF.",
+						false);
 			} else {
-				showStatus("bibtex failed - see the \"EcTeX Build\" console.", true);
+				showStatus("Bibliography tool failed - see the \"EcTeX Build\" console.", true);
 			}
 		});
 		buildJob.schedule();
 	}
-
 	private boolean isBusy() {
 		if (buildJob != null && buildJob.getState() != Job.NONE) {
 			showStatus("A build is already running.", true);

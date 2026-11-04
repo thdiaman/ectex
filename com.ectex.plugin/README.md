@@ -18,10 +18,10 @@ with a small website (install, usage, publishing). Rebuild with
    feature, see below). Open `ectex-demo.tex` and build it. The PDF Preview view opens next to the editor
    (or use Window > Show View > Other... > EcTeX > PDF Preview). Drag the view anywhere you like.
 
-Requirements on the machine: `pdflatex`, `bibtex` and `synctex` on the PATH (MiKTeX / TeX Live), or set their
-paths in Window > Preferences > EcTeX (use `biber` as the "bibtex command" for biblatex projects).
+Requirements on the machine: a LaTeX engine (`pdflatex`, `xelatex` or `lualatex`), a bibliography tool (`bibtex` or
+`biber`) and `synctex` on the PATH (MiKTeX / TeX Live), or set their paths in Window > Preferences > EcTeX.
 
-## Keys (M1 = Ctrl on Windows/Linux). Build, BibTeX and Ctrl+Space work in the editor and in the PDF view.
+## Keys (M1 = Ctrl on Windows/Linux). The build commands and Ctrl+Space work in the editor and in the PDF view.
 
 **All shortcuts are configurable:** Window > Preferences > General > Keys, filter by "EcTeX" (the EcTeX
 preference page links there). Each command has a single binding that applies to both the editor and the
@@ -31,8 +31,9 @@ Defaults:
 
 | Key | Action |
 |---|---|
-| `Ctrl+F2` | Build PDF: save, run `pdflatex -synctex=1`, reload the PDF on success (output in the *EcTeX Build* console, errors as problem markers) |
-| `Ctrl+F3` | Run BibTeX on the document (needs the `.aux` file from a previous build; then build twice to resolve citations) |
+| `Ctrl+F2` | Build PDF: save the project's files, run the LaTeX engine **once**, reload the PDF on success (output in the *EcTeX Build* console, errors as problem markers) |
+| `Ctrl+F3` | Run Bibliography Tool: BibTeX or Biber, as chosen in the preferences (needs the `.aux` file from a previous LaTeX run) |
+| `Ctrl+F5` | **Build All**: the sequence chosen in the preferences, stopping at the first error. With a bibliography: LaTeX, bibliography tool, LaTeX, LaTeX; without: LaTeX, LaTeX |
 | `Ctrl+Space` in the editor | Forward search: scroll to and highlight the PDF location of the caret line |
 | `Ctrl+Space` in the PDF view | Inverse search: jump to the source line at the mouse position (or last click) |
 | `Ctrl+click` in the PDF view | Inverse search at the clicked position |
@@ -43,12 +44,22 @@ PDF view: wheel scrolls, `Ctrl`+wheel (or `+` / `-`) zooms, right-click for "Fit
 The view follows the active `.tex` editor and shows the PDF of that editor's document (the project's main file
 if one is set); an editor whose document has no PDF yet leaves the view unchanged.
 
+## Building and the tools (Window > Preferences > EcTeX)
+Everything is an explicit choice, nothing is detected automatically:
+
+* **LaTeX engine:** `pdflatex` (default), `xelatex`, `lualatex`, or any command / full path you type, plus its arguments.
+* **Bibliography tool:** `bibtex` (default) for `\bibliography{...}`, or `biber` for biblatex with `backend=biber`.
+  If it does not match the document, the bibliography step fails and the console says what to check.
+* **Build All runs:** *LaTeX, bibliography tool, LaTeX, LaTeX* (default) or *LaTeX, LaTeX* for a document without a
+  bibliography (BibTeX reports an error on such a document, so the longer sequence stops there).
+
 ## LaTeX projects, the EcTeX menu and the LaTeX perspective
 A **LaTeX project** is a project with the LaTeX nature. It is what gives a project a main file. Everything else
 works without it: `.tex` files in any project open in the EcTeX editor and build on their own.
 
 * **EcTeX menu** (menu bar, always visible; items are disabled when they do not apply): New LaTeX Project...,
-  Open LaTeX Perspective, Build PDF, Run BibTeX, Forward / Inverse Search, and the formatting commands.
+  Open LaTeX Perspective, Build PDF, Build All, Run Bibliography Tool, Forward / Inverse Search, and the formatting
+  commands.
 * **File > New > Other > EcTeX > LaTeX Project** (or `EcTeX > New LaTeX Project...`): creates a LaTeX project with
   a starter main file (set as the project's main file) and optionally `references.bib`, then offers to switch to
   the LaTeX perspective.
@@ -73,7 +84,7 @@ right-click menu, and use the **EcTeX** submenu. There is no default key.
 The main file is shown in the explorers as `ectex-demo-multifile.tex [main file]` (switch this off under
 Preferences > General > Appearance > Label Decorations > "EcTeX main file").
 
-With a main file set, in every `.tex` file of the project: build and BibTeX run on the main file (in its folder,
+With a main file set, in every `.tex` file of the project: Build PDF, Build All and the bibliography tool run on the main file (in its folder,
 after saving the project's unsaved files), the PDF view shows the main file's PDF, forward search works from any
 file, inverse search opens the file that produced the text, and LaTeX errors become markers on the file that
 contains them. The setting is saved per project in `.settings/com.ectex.plugin.prefs`. There is one main file per

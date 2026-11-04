@@ -30,16 +30,23 @@
   <h2>Build</h2>
   <div class="table-scroll"><table>
     <tr><th>Default key</th><th>Command</th></tr>
-    <tr><td><kbd>Ctrl</kbd>+<kbd>F2</kbd></td><td><strong>Build PDF</strong>: saves the file, runs <code>pdflatex -interaction=nonstopmode -file-line-error -synctex=1</code>, and reloads the PDF if it succeeded. It runs on the project's <a href="#main-file-note">main file</a> if one is set.</td></tr>
-    <tr><td><kbd>Ctrl</kbd>+<kbd>F3</kbd></td><td><strong>Run BibTeX</strong>: runs <code>bibtex</code> on the document (or on the main file). It needs the <code>.aux</code> file from an earlier build.</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>F2</kbd></td><td><strong>Build PDF</strong>: saves the files of the project, runs the LaTeX engine <em>once</em> (by default <code>pdflatex -interaction=nonstopmode -file-line-error -synctex=1</code>), and reloads the PDF if it succeeded. It runs on the project's <a href="#main-file-note">main file</a> if one is set. Fast, for everyday editing.</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>F3</kbd></td><td><strong>Run Bibliography Tool</strong>: runs BibTeX or Biber (your choice in the preferences) on the document or main file. It needs the <code>.aux</code> file from an earlier build.</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>F5</kbd></td><td><strong>Build All</strong>: runs the sequence chosen in the preferences and stops at the first error. With a bibliography: LaTeX, bibliography tool, LaTeX, LaTeX. Without one: LaTeX, LaTeX. The PDF reloads at the end.</td></tr>
   </table></div>
-  <p>Output goes to the <strong>EcTeX Build</strong> console. LaTeX errors become problem markers in the editor and the Problems view.</p>
-  <p>Typical sequence for a document with citations: <em>Build, BibTeX, Build, Build</em>. BibTeX does not rebuild the PDF by itself. For biblatex projects set the bibtex command to <code>biber</code> in the preferences.</p>
+  <p>Output goes to the <strong>EcTeX Build</strong> console (one console per run, with a header for each step). LaTeX errors become problem markers in the editor and the Problems view.</p>
+
+  <h3 id="build">Choosing the tools (Window &gt; Preferences &gt; EcTeX)</h3>
+  <ul>
+    <li><strong>LaTeX engine:</strong> <code>pdflatex</code> (default), <code>xelatex</code>, <code>lualatex</code>, or type any command or a full path. The arguments field holds the options passed before the file name.</li>
+    <li><strong>Bibliography tool:</strong> <code>bibtex</code> (default) for documents that use <code>\bibliography{...}</code>, or <code>biber</code> for biblatex with <code>backend=biber</code>. EcTeX does not guess: if the tool does not match the document, the bibliography step fails and the console says what to check.</li>
+    <li><strong>Build All runs:</strong> <em>LaTeX, bibliography tool, LaTeX, LaTeX</em> (default), or <em>LaTeX, LaTeX</em> for a document without a bibliography. The bibliography step fails on a document that has none (BibTeX reports &ldquo;I found no \citation commands&rdquo;), so choose the shorter sequence for those.</li>
+  </ul>
 
   <h2 id="latex-projects">LaTeX projects, the EcTeX menu and the LaTeX perspective</h2>
   <p>A <strong>LaTeX project</strong> is a project with the LaTeX nature; it is what lets a project have a main file. Everything else works without it: <code>.tex</code> files in any project open in the EcTeX editor and build on their own.</p>
   <ul>
-    <li><strong>EcTeX menu</strong> in the menu bar: always visible, with items disabled when they do not apply. It has <em>New LaTeX Project&hellip;</em>, <em>Open LaTeX Perspective</em>, Build PDF, Run BibTeX, Forward / Inverse Search and the formatting commands.</li>
+    <li><strong>EcTeX menu</strong> in the menu bar: always visible, with items disabled when they do not apply. It has <em>New LaTeX Project&hellip;</em>, <em>Open LaTeX Perspective</em>, Build PDF, Build All, Run Bibliography Tool, Forward / Inverse Search and the formatting commands.</li>
     <li><strong>New project:</strong> <em>File &gt; New &gt; Other&hellip; &gt; EcTeX &gt; LaTeX Project</em>, or <em>EcTeX &gt; New LaTeX Project&hellip;</em>. The wizard creates a LaTeX project with a starter main file (already set as the project's main file) and, if you want, <code>references.bib</code>, and offers to switch to the LaTeX perspective.</li>
     <li><strong>Existing project:</strong> right-click the project &gt; <em>Configure &gt; Convert to LaTeX Project</em>. (A <code>.tex</code> file in a plain project also offers <em>EcTeX &gt; Convert Project to LaTeX Project</em> in its right-click menu.) <em>Remove LaTeX Nature</em> turns it back into a plain project and clears its main file.</li>
     <li><strong>LaTeX perspective:</strong> <em>Window &gt; Perspective &gt; Open Perspective &gt; Other&hellip; &gt; LaTeX</em>, or <em>EcTeX &gt; Open LaTeX Perspective</em>. It shows the Project Explorer on the left, the editors in the middle, Problems and the EcTeX Build console below, and the PDF Preview to the right of the editors once you open a <code>.tex</code> file.</li>
@@ -55,7 +62,7 @@
   <p>The main file is then shown as <code>main.tex [main file]</code> in the explorers, so you can always see which file of the project it is. The setting belongs to that project only; other projects are not affected.</p>
   <p>From then on, in <em>every</em> <code>.tex</code> file of that project:</p>
   <ul>
-    <li><strong>Build</strong> and <strong>Run BibTeX</strong> work on the main file, in its folder. Before building, EcTeX saves all unsaved files of the project, so edits in the chapters are included.</li>
+    <li><strong>Build PDF</strong>, <strong>Build All</strong> and <strong>Run Bibliography Tool</strong> work on the main file, in its folder. Before building, EcTeX saves all unsaved files of the project, so edits in the chapters are included.</li>
     <li>The <strong>PDF Preview</strong> shows the main file's PDF and names the document under its tab (&ldquo;Document: main.tex&rdquo;). Moving between the files of the project keeps the PDF and its scroll position.</li>
     <li><strong>Forward search</strong> (<kbd>Ctrl</kbd>+<kbd>Space</kbd>) works from a chapter, and <strong>inverse search</strong> opens the chapter that produced the text.</li>
     <li><strong>LaTeX errors</strong> become problem markers on the file that contains them, not only on the main file.</li>
@@ -82,13 +89,15 @@
 
   <h2>Configuration</h2>
   <ul>
-    <li><strong>Commands:</strong> <em>Window &gt; Preferences &gt; EcTeX</em> sets the <code>pdflatex</code>, <code>bibtex</code> and <code>synctex</code> commands (use a full path if Eclipse does not see them on the <code>PATH</code>) and the arguments for pdflatex and bibtex.</li>
+    <li><strong>Tools:</strong> <em>Window &gt; Preferences &gt; EcTeX</em> sets the LaTeX engine, the bibliography tool (BibTeX or Biber), the Build All sequence, their arguments and the <code>synctex</code> command (see <a href="#build">Choosing the tools</a>). Use a full path if Eclipse does not see a program on the <code>PATH</code>.</li>
     <li><strong>Shortcuts:</strong> <em>Window &gt; Preferences &gt; General &gt; Keys</em>, then filter by <code>EcTeX</code>. Every command above can be rebound or unbound there. The keys shown in status-line messages always follow your bindings.</li>
   </ul>
 
   <h2>Troubleshooting</h2>
-  <h3>&ldquo;Could not run pdflatex&rdquo;</h3>
-  <p>Eclipse cannot find the program. Install MiKTeX or TeX Live, restart Eclipse so it sees the updated <code>PATH</code>, or enter the full path in <em>Preferences &gt; EcTeX</em>.</p>
+  <h3>&ldquo;Could not run &hellip;&rdquo;</h3>
+  <p>Eclipse cannot find the LaTeX engine or the bibliography tool. Make sure your TeX distribution is installed, restart Eclipse so it sees the updated <code>PATH</code>, or enter the full path in <em>Preferences &gt; EcTeX</em>.</p>
+  <h3>&ldquo;bibliography tool FAILED&rdquo; in the build console</h3>
+  <p>Check <em>Preferences &gt; EcTeX</em>: choose BibTeX for <code>\bibliography</code> and Biber for biblatex with <code>backend=biber</code>; the document must have a bibliography. For a document without one, set <em>Build All runs</em> to <em>LaTeX, LaTeX</em>.</p>
   <h3>Ctrl+Space or Ctrl+click does not jump</h3>
   <p>Build once with <kbd>Ctrl</kbd>+<kbd>F2</kbd> so the <code>.synctex.gz</code> file exists and matches the current text, and make sure <code>synctex</code> is available. The status line shows the reason when a jump fails. Edits since the last build can shift line numbers.</p>
   <h3>A shortcut does nothing or triggers something else</h3>

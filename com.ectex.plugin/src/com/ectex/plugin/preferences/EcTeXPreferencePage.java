@@ -1,5 +1,6 @@
 package com.ectex.plugin.preferences;
 
+import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
@@ -13,6 +14,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 
 import com.ectex.plugin.Activator;
+import com.ectex.plugin.build.BuildPlan;
 
 public class EcTeXPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
@@ -25,17 +27,25 @@ public class EcTeXPreferencePage extends FieldEditorPreferencePage implements IW
 	@Override
 	public void init(IWorkbench workbench) {
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription("Commands used by the EcTeX LaTeX editor. Use a full path if the command is not on the PATH "
-				+ "of the Eclipse process.");
+		setDescription("Tools used to build LaTeX documents. Pick one from the list or type your own command; use a "
+				+ "full path if it is not on the PATH of the Eclipse process. Choose Biber instead of BibTeX for "
+				+ "documents that use biblatex with backend=biber.");
 	}
 
 	@Override
 	protected void createFieldEditors() {
-		addField(new StringFieldEditor(PreferenceConstants.PDFLATEX_COMMAND, "pdflatex command:", getFieldEditorParent()));
-		addField(new StringFieldEditor(PreferenceConstants.PDFLATEX_ARGS, "pdflatex arguments:", getFieldEditorParent()));
-		addField(new StringFieldEditor(PreferenceConstants.BIBTEX_COMMAND, "bibtex command:", getFieldEditorParent()));
-		addField(new StringFieldEditor(PreferenceConstants.BIBTEX_ARGS, "bibtex arguments:", getFieldEditorParent()));
-		addField(new StringFieldEditor(PreferenceConstants.SYNCTEX_COMMAND, "synctex command:", getFieldEditorParent()));
+		Composite parent = getFieldEditorParent();
+		addField(new PresetCommandFieldEditor(PreferenceConstants.PDFLATEX_COMMAND, "LaTeX engine:",
+				new String[] { "pdflatex", "xelatex", "lualatex" }, parent));
+		addField(new StringFieldEditor(PreferenceConstants.PDFLATEX_ARGS, "LaTeX arguments:", parent));
+		addField(new PresetCommandFieldEditor(PreferenceConstants.BIBTEX_COMMAND, "Bibliography tool:",
+				new String[] { "bibtex", "biber" }, parent));
+		addField(new StringFieldEditor(PreferenceConstants.BIBTEX_ARGS, "Bibliography arguments:", parent));
+		addField(new ComboFieldEditor(PreferenceConstants.BUILD_ALL_SEQUENCE, "Build All runs:",
+				new String[][] { { "LaTeX, LaTeX (document without a bibliography)", BuildPlan.SEQUENCE_LATEX_TWICE },
+						{ "LaTeX, bibliography tool, LaTeX, LaTeX", BuildPlan.SEQUENCE_WITH_BIBLIOGRAPHY } },
+				parent));
+		addField(new StringFieldEditor(PreferenceConstants.SYNCTEX_COMMAND, "SyncTeX command:", parent));
 	}
 
 	@Override
@@ -51,8 +61,8 @@ public class EcTeXPreferencePage extends FieldEditorPreferencePage implements IW
 		fields.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		Link keys = new Link(outer, SWT.NONE);
-		keys.setText("The keyboard shortcuts (build, bibtex, synchronize, bold, italic, ...) can be changed on the "
-				+ "<a>Keys</a> preference page: filter by \"EcTeX\".");
+		keys.setText("The keyboard shortcuts (build, bibliography tool, build all, synchronize, bold, italic, ...) can be "
+				+ "changed on the <a>Keys</a> preference page: filter by \"EcTeX\".");
 		GridData data = new GridData(GridData.FILL_HORIZONTAL);
 		data.widthHint = 400;
 		data.verticalIndent = 10;

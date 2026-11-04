@@ -10,6 +10,8 @@ import org.eclipse.ui.keys.IBindingService;
 public final class Commands {
 
 	public static final String BUILD = "com.ectex.plugin.commands.build";
+	public static final String BUILD_ALL = "com.ectex.plugin.commands.buildAll";
+	/** The bibliography tool command (id kept from the time it was only BibTeX, so key bindings stay valid). */
 	public static final String BIBTEX = "com.ectex.plugin.commands.bibtex";
 	public static final String SYNC = "com.ectex.plugin.commands.sync";
 	public static final String SET_MAIN_FILE = "com.ectex.plugin.commands.setMainFile";

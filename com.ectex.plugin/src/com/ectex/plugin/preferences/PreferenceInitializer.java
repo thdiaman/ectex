@@ -4,6 +4,7 @@ import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import com.ectex.plugin.Activator;
+import com.ectex.plugin.build.BuildPlan;
 
 public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
@@ -14,6 +15,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(PreferenceConstants.PDFLATEX_ARGS, "-interaction=nonstopmode -file-line-error -synctex=1");
 		store.setDefault(PreferenceConstants.BIBTEX_COMMAND, "bibtex");
 		store.setDefault(PreferenceConstants.BIBTEX_ARGS, "");
+		store.setDefault(PreferenceConstants.BUILD_ALL_SEQUENCE, BuildPlan.SEQUENCE_WITH_BIBLIOGRAPHY);
 		store.setDefault(PreferenceConstants.SYNCTEX_COMMAND, "synctex");
 	}
 }
