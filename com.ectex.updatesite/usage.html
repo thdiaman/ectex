@@ -36,9 +36,19 @@
   <p>Output goes to the <strong>EcTeX Build</strong> console. LaTeX errors become problem markers in the editor and the Problems view.</p>
   <p>Typical sequence for a document with citations: <em>Build, BibTeX, Build, Build</em>. BibTeX does not rebuild the PDF by itself. For biblatex projects set the bibtex command to <code>biber</code> in the preferences.</p>
 
+  <h2 id="latex-projects">LaTeX projects, the EcTeX menu and the LaTeX perspective</h2>
+  <p>A <strong>LaTeX project</strong> is a project with the LaTeX nature; it is what lets a project have a main file. Everything else works without it: <code>.tex</code> files in any project open in the EcTeX editor and build on their own.</p>
+  <ul>
+    <li><strong>EcTeX menu</strong> in the menu bar: always visible, with items disabled when they do not apply. It has <em>New LaTeX Project&hellip;</em>, <em>Open LaTeX Perspective</em>, Build PDF, Run BibTeX, Forward / Inverse Search and the formatting commands.</li>
+    <li><strong>New project:</strong> <em>File &gt; New &gt; Other&hellip; &gt; EcTeX &gt; LaTeX Project</em>, or <em>EcTeX &gt; New LaTeX Project&hellip;</em>. The wizard creates a LaTeX project with a starter main file (already set as the project's main file) and, if you want, <code>references.bib</code>, and offers to switch to the LaTeX perspective.</li>
+    <li><strong>Existing project:</strong> right-click the project &gt; <em>Configure &gt; Convert to LaTeX Project</em>. (A <code>.tex</code> file in a plain project also offers <em>EcTeX &gt; Convert Project to LaTeX Project</em> in its right-click menu.) <em>Remove LaTeX Nature</em> turns it back into a plain project and clears its main file.</li>
+    <li><strong>LaTeX perspective:</strong> <em>Window &gt; Perspective &gt; Open Perspective &gt; Other&hellip; &gt; LaTeX</em>, or <em>EcTeX &gt; Open LaTeX Perspective</em>. It shows the Project Explorer on the left, the editors in the middle, Problems and the EcTeX Build console below, and the PDF Preview to the right of the editors once you open a <code>.tex</code> file.</li>
+  </ul>
+
   <h2 id="main-file-note">Documents with several files (main file)</h2>
-  <p>When a document is split over several files (<code>main.tex</code> with <code>\input{chapters/ch1}</code> and so on), tell EcTeX which file is the <strong>main file</strong>:</p>
+  <p>When a document is split over several files (<code>main.tex</code> with <code>\input{chapters/ch1}</code> and so on), tell EcTeX which file is the <strong>main file</strong>. This needs a <a href="#latex-projects">LaTeX project</a>:</p>
   <ol>
+    <li>If the project is not a LaTeX project yet, right-click it and choose <strong>Configure &gt; Convert to LaTeX Project</strong>.</li>
     <li>In the Project Explorer (or Navigator / Package Explorer), right-click the main file, for example <code>main.tex</code>. You can also right-click inside that file in the editor.</li>
     <li>Choose <strong>EcTeX &gt; Set as Main File</strong>.</li>
   </ol>
@@ -84,9 +94,11 @@
   <h3>A shortcut does nothing or triggers something else</h3>
   <p>Open <em>Preferences &gt; General &gt; Keys</em>, filter by the key, and look for conflicts in the <em>Conflicts</em> column. Some systems reserve <kbd>Ctrl</kbd>+<kbd>Space</kbd> for switching input languages; rebind <em>Synchronize</em> in that case.</p>
   <h3>&ldquo;This file has no \documentclass&rdquo; after a failed build</h3>
-  <p>The file is probably a chapter of a larger document. Right-click the main file and choose <em>EcTeX &gt; Set as Main File</em>.</p>
+  <p>The file is probably a chapter of a larger document. Convert the project to a <a href="#latex-projects">LaTeX project</a> if it is not one yet, then right-click the main file and choose <em>EcTeX &gt; Set as Main File</em>.</p>
   <h3>&ldquo;The main file &hellip; does not exist&rdquo;</h3>
   <p>The main file stored for the project was renamed, moved or deleted. Right-click the right file and choose <em>EcTeX &gt; Set as Main File</em>, or right-click the project and choose <em>EcTeX &gt; Clear Main File</em>.</p>
+  <h3>&ldquo;Project &hellip; is not a LaTeX project&rdquo;</h3>
+  <p>A main file needs a LaTeX project. Right-click the project and choose <em>Configure &gt; Convert to LaTeX Project</em>, then set the main file again.</p>
   <h3>The PDF Preview is blank after a build</h3>
   <p>Look at the <strong>EcTeX Build</strong> console: if <code>pdflatex</code> failed, the previous PDF stays displayed.</p>
 

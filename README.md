@@ -6,6 +6,8 @@ Tex editor and builder plugin for the Eclipse IDE.
 - **PDF Preview** view next to the editor (zoom, scroll, highlight of the synced spot)
 - `Ctrl+F2` runs `pdflatex`, `Ctrl+F3` runs `bibtex`
 - `Ctrl+Space` / `Ctrl+click` jump between source and PDF (SyncTeX forward and inverse search)
+- **LaTeX projects:** a New LaTeX Project wizard, a LaTeX perspective, and *Convert to LaTeX Project* for existing
+  projects (right-click the project > Configure)
 - Documents split over several files: set a **main file** per project (right-click a `.tex` file > EcTeX), and build, BibTeX, the PDF
   and sync work from every file of the project
 - Productivity shortcuts such as `Ctrl+B` for `\textbf{}`; every shortcut can be changed in

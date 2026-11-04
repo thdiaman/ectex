@@ -43,15 +43,32 @@ PDF view: wheel scrolls, `Ctrl`+wheel (or `+` / `-`) zooms, right-click for "Fit
 The view follows the active `.tex` editor and shows the PDF of that editor's document (the project's main file
 if one is set); an editor whose document has no PDF yet leaves the view unchanged.
 
+## LaTeX projects, the EcTeX menu and the LaTeX perspective
+A **LaTeX project** is a project with the LaTeX nature. It is what gives a project a main file. Everything else
+works without it: `.tex` files in any project open in the EcTeX editor and build on their own.
+
+* **EcTeX menu** (menu bar, always visible; items are disabled when they do not apply): New LaTeX Project...,
+  Open LaTeX Perspective, Build PDF, Run BibTeX, Forward / Inverse Search, and the formatting commands.
+* **File > New > Other > EcTeX > LaTeX Project** (or `EcTeX > New LaTeX Project...`): creates a LaTeX project with
+  a starter main file (set as the project's main file) and optionally `references.bib`, then offers to switch to
+  the LaTeX perspective.
+* **Existing project:** right-click the project > Configure > **Convert to LaTeX Project** (also offered in the
+  EcTeX submenu of a `.tex` file in a plain project). **Remove LaTeX Nature** (Configure menu or EcTeX submenu of
+  the project) turns it back into a plain project and clears its main file.
+* **LaTeX perspective** (Window > Perspective > Open Perspective > Other... > LaTeX, or `EcTeX > Open LaTeX
+  Perspective`): Project Explorer on the left, editors in the middle, Problems and the *EcTeX Build* console below;
+  the PDF Preview opens to the right of the editors with the first `.tex` file.
+
 ## Documents with several files (main file)
-Right-click in the Project Explorer (or Navigator / Package Explorer), or in the editor's own right-click menu,
-and use the **EcTeX** submenu. There is no menu-bar entry and no default key.
+In a LaTeX project, right-click in the Project Explorer (or Navigator / Package Explorer), or in the editor's own
+right-click menu, and use the **EcTeX** submenu. There is no default key.
 
 | Right-click on | Command | Action |
 |---|---|---|
 | a `.tex` file that is not the main file (or in its editor) | `EcTeX > Set as Main File` | Make this file the main file of its project |
 | the main file (or in its editor) | `EcTeX > Clear Main File` | Remove the main file of the project |
 | a project that has a main file | `EcTeX > Clear Main File` | Remove the main file of the project |
+| a `.tex` file in a plain project (or in its editor) | `EcTeX > Convert Project to LaTeX Project` | Make the project a LaTeX project first |
 
 The main file is shown in the explorers as `ectex-demo-multifile.tex [main file]` (switch this off under
 Preferences > General > Appearance > Label Decorations > "EcTeX main file").
@@ -61,8 +78,9 @@ after saving the project's unsaved files), the PDF view shows the main file's PD
 file, inverse search opens the file that produced the text, and LaTeX errors become markers on the file that
 contains them. The setting is saved per project in `.settings/com.ectex.plugin.prefs`. There is one main file per
 project: to build another document of the same project, set another main file or clear it. Main files only work
-for files in a workspace project. Try it with the `ectex-demo-multifile` sample: set
-`ectex-demo-multifile.tex` as the main file, then build and sync from any file in its `sections` folder.
+for files in a workspace project. Try it with the `ectex-demo-multifile` sample: right-click the project >
+Configure > Convert to LaTeX Project, right-click `ectex-demo-multifile.tex` > EcTeX > Set as Main File, then
+build and sync from any file in its `sections` folder.
 
 ## Notes
 * PDF rendering uses the bundled Apache PDFBox 2.0.31 (`lib/`, Apache License 2.0).

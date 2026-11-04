@@ -14,6 +14,8 @@ public final class Commands {
 	public static final String SYNC = "com.ectex.plugin.commands.sync";
 	public static final String SET_MAIN_FILE = "com.ectex.plugin.commands.setMainFile";
 	public static final String CLEAR_MAIN_FILE = "com.ectex.plugin.commands.clearMainFile";
+	public static final String CONVERT_TO_LATEX = "com.ectex.plugin.commands.convertToLatexProject";
+	public static final String REMOVE_LATEX_NATURE = "com.ectex.plugin.commands.removeLatexNature";
 
 	private Commands() {
 	}

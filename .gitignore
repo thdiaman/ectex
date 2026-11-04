@@ -25,3 +25,6 @@ samples/**/*.bcf
 samples/**/*.run.xml
 samples/**/*.synctex.gz
 samples/**/*.pdf
+
+# Per-project EcTeX settings (e.g. the main file) that trying the samples in Eclipse creates
+samples/**/.settings/

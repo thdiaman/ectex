@@ -173,7 +173,8 @@ public class EcTeXEditor extends TextEditor {
 		if (document == null || document.get().contains("\\documentclass")) {
 			return "";
 		}
-		return " This file has no \\documentclass: if it is part of a larger document, right-click the main file"
+		return " This file has no \\documentclass: if it is part of a larger document, make the project a LaTeX"
+				+ " project (right-click it > Configure > Convert to LaTeX Project), then right-click the main file"
 				+ " and choose EcTeX > Set as Main File.";
 	}
 

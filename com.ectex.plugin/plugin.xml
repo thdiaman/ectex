@@ -92,6 +92,18 @@
             categoryId="com.ectex.plugin.category">
       </command>
       <command
+            id="com.ectex.plugin.commands.convertToLatexProject"
+            name="Convert to LaTeX Project"
+            description="Turn the project into a LaTeX project (needed for a main file)"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
+            id="com.ectex.plugin.commands.removeLatexNature"
+            name="Remove LaTeX Nature"
+            description="Turn a LaTeX project back into a plain project (also clears its main file)"
+            categoryId="com.ectex.plugin.category">
+      </command>
+      <command
             id="com.ectex.plugin.commands.sync"
             name="Synchronize (Forward / Inverse Search)"
             description="In the editor: jump to the PDF. In the PDF viewer: jump to the source"
@@ -177,6 +189,14 @@
       <handler
             commandId="com.ectex.plugin.commands.clearMainFile"
             class="com.ectex.plugin.handlers.MainFileHandler">
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.convertToLatexProject"
+            class="com.ectex.plugin.handlers.LatexNatureHandler">
+      </handler>
+      <handler
+            commandId="com.ectex.plugin.commands.removeLatexNature"
+            class="com.ectex.plugin.handlers.LatexNatureHandler">
       </handler>
       <handler
             commandId="com.ectex.plugin.commands.bold"
@@ -278,18 +298,35 @@
       </key>
    </extension>
 
-   <!-- "EcTeX" menu in the main menu bar, visible while an EcTeX editor is active -->
+   <!-- "EcTeX" menu in the main menu bar. Always visible: items are enabled or disabled, never hidden. -->
    <extension point="org.eclipse.ui.menus">
       <menuContribution
             locationURI="menu:org.eclipse.ui.main.menu?after=additions">
          <menu
                id="com.ectex.plugin.menu"
                label="EcTeX">
-            <visibleWhen checkEnabled="false">
-               <with variable="activeEditorId">
-                  <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
-               </with>
-            </visibleWhen>
+            <command
+                  commandId="org.eclipse.ui.newWizard"
+                  label="New LaTeX Project..."
+                  style="push">
+               <parameter
+                     name="newWizardId"
+                     value="com.ectex.plugin.wizards.newProject">
+               </parameter>
+            </command>
+            <command
+                  commandId="org.eclipse.ui.perspectives.showPerspective"
+                  label="Open LaTeX Perspective"
+                  style="push">
+               <parameter
+                     name="org.eclipse.ui.perspectives.showPerspective.perspectiveId"
+                     value="com.ectex.plugin.perspectives.latex">
+               </parameter>
+            </command>
+            <separator
+                  name="com.ectex.plugin.menu.sepProject"
+                  visible="true">
+            </separator>
             <command
                   commandId="com.ectex.plugin.commands.build"
                   label="Build PDF"
@@ -337,9 +374,47 @@
          </menu>
       </menuContribution>
 
-      <!-- Right-click a .tex file or a project (Project Explorer, Navigator, Package Explorer):
-           EcTeX > Set as Main File / Clear Main File. Set is offered on a .tex file that is not the
-           main file; Clear on the main file and on a project that has a main file. -->
+      <!-- Project right-click > Configure > Convert to LaTeX Project / Remove LaTeX Nature -->
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
+         <command
+               commandId="com.ectex.plugin.commands.convertToLatexProject"
+               label="Convert to LaTeX Project"
+               style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate ifEmpty="false">
+                     <adapt type="org.eclipse.core.resources.IProject">
+                        <not>
+                           <test property="org.eclipse.core.resources.projectNature" value="com.ectex.plugin.latexNature"/>
+                        </not>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+         <command
+               commandId="com.ectex.plugin.commands.removeLatexNature"
+               label="Remove LaTeX Nature"
+               style="push">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate ifEmpty="false">
+                     <adapt type="org.eclipse.core.resources.IProject">
+                        <test property="org.eclipse.core.resources.projectNature" value="com.ectex.plugin.latexNature"/>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
+      <!-- Right-click a .tex file or a LaTeX project (Project Explorer, Navigator, Package Explorer), EcTeX submenu:
+           - .tex file in a LaTeX project: Set as Main File (Clear Main File if it is the main file)
+           - .tex file in a plain project: Convert to LaTeX Project (a main file needs a LaTeX project)
+           - LaTeX project: Clear Main File (if it has one) and Remove LaTeX Nature -->
       <menuContribution
             locationURI="popup:org.eclipse.ui.popup.any?after=additions">
          <menu
@@ -354,7 +429,7 @@
                            <test property="org.eclipse.core.resources.extension" value="tex"/>
                            <and>
                               <instanceof value="org.eclipse.core.resources.IProject"/>
-                              <test property="com.ectex.plugin.hasMainFile" value="true"/>
+                              <test property="org.eclipse.core.resources.projectNature" value="com.ectex.plugin.latexNature"/>
                            </and>
                         </or>
                      </adapt>
@@ -371,6 +446,7 @@
                      <iterate ifEmpty="false">
                         <adapt type="org.eclipse.core.resources.IResource">
                            <test property="org.eclipse.core.resources.extension" value="tex"/>
+                           <test property="org.eclipse.core.resources.projectNature" value="com.ectex.plugin.latexNature"/>
                            <test property="com.ectex.plugin.isMainFile" value="false"/>
                         </adapt>
                      </iterate>
@@ -398,10 +474,44 @@
                   </with>
                </visibleWhen>
             </command>
+            <command
+                  commandId="com.ectex.plugin.commands.convertToLatexProject"
+                  label="Convert Project to LaTeX Project"
+                  style="push">
+               <visibleWhen checkEnabled="false">
+                  <with variable="selection">
+                     <count value="1"/>
+                     <iterate ifEmpty="false">
+                        <adapt type="org.eclipse.core.resources.IResource">
+                           <test property="org.eclipse.core.resources.extension" value="tex"/>
+                           <not>
+                              <test property="org.eclipse.core.resources.projectNature" value="com.ectex.plugin.latexNature"/>
+                           </not>
+                        </adapt>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.removeLatexNature"
+                  label="Remove LaTeX Nature"
+                  style="push">
+               <visibleWhen checkEnabled="false">
+                  <with variable="selection">
+                     <count value="1"/>
+                     <iterate ifEmpty="false">
+                        <adapt type="org.eclipse.core.resources.IResource">
+                           <instanceof value="org.eclipse.core.resources.IProject"/>
+                           <test property="org.eclipse.core.resources.projectNature" value="com.ectex.plugin.latexNature"/>
+                        </adapt>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
          </menu>
       </menuContribution>
 
-      <!-- The same two commands in the right-click menu of the EcTeX editor (they act on its file/project) -->
+      <!-- The same commands in the right-click menu of the EcTeX editor (they act on its file and project) -->
       <menuContribution
             locationURI="popup:#TextEditorContext?after=additions">
          <menu
@@ -424,6 +534,7 @@
                <visibleWhen checkEnabled="false">
                   <with variable="activeEditorInput">
                      <adapt type="org.eclipse.core.resources.IResource">
+                        <test property="org.eclipse.core.resources.projectNature" value="com.ectex.plugin.latexNature"/>
                         <test property="com.ectex.plugin.isMainFile" value="false"/>
                      </adapt>
                   </with>
@@ -441,11 +552,63 @@
                   </with>
                </visibleWhen>
             </command>
+            <command
+                  commandId="com.ectex.plugin.commands.convertToLatexProject"
+                  label="Convert Project to LaTeX Project"
+                  style="push">
+               <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorInput">
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <not>
+                           <test property="org.eclipse.core.resources.projectNature" value="com.ectex.plugin.latexNature"/>
+                        </not>
+                     </adapt>
+                  </with>
+               </visibleWhen>
+            </command>
          </menu>
       </menuContribution>
    </extension>
 
-   <!-- Properties used by the visibility conditions above -->
+   <!-- LaTeX project nature: a project with it is a "LaTeX project" and can have a main file -->
+   <extension
+         id="latexNature"
+         name="LaTeX Project"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run class="com.ectex.plugin.project.LatexNature"/>
+      </runtime>
+   </extension>
+
+   <!-- File > New > Other > EcTeX > LaTeX Project (also EcTeX > New LaTeX Project... in the menu bar) -->
+   <extension point="org.eclipse.ui.newWizards">
+      <category
+            id="com.ectex.plugin.wizards.category"
+            name="EcTeX">
+      </category>
+      <wizard
+            id="com.ectex.plugin.wizards.newProject"
+            name="LaTeX Project"
+            category="com.ectex.plugin.wizards.category"
+            class="com.ectex.plugin.wizards.NewLatexProjectWizard"
+            finalPerspective="com.ectex.plugin.perspectives.latex"
+            project="true">
+         <description>
+            Creates a LaTeX project with a main .tex file and, optionally, a bibliography file.
+         </description>
+      </wizard>
+   </extension>
+
+   <!-- Window > Perspective > Open Perspective > Other... > LaTeX -->
+   <extension point="org.eclipse.ui.perspectives">
+      <perspective
+            id="com.ectex.plugin.perspectives.latex"
+            name="LaTeX"
+            class="com.ectex.plugin.perspectives.LatexPerspectiveFactory">
+      </perspective>
+   </extension>
+
+   <!-- Properties used by the visibility conditions of the context menus -->
    <extension point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
             id="com.ectex.plugin.propertyTesters.mainFile"
@@ -470,7 +633,7 @@
             <objectClass name="org.eclipse.core.resources.IFile"/>
          </enablement>
          <description>
-            Appends [main file] to the main file of a project (set with EcTeX &gt; Set as Main File).
+            Appends [main file] to the main file of a LaTeX project (set with right-click &gt; EcTeX &gt; Set as Main File).
          </description>
       </decorator>
    </extension>

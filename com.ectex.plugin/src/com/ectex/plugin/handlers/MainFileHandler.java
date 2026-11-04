@@ -1,41 +1,26 @@
 package com.ectex.plugin.handlers;
 
-import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.Adapters;
-import org.eclipse.jface.action.IStatusLineManager;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.handlers.HandlerUtil;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.ectex.plugin.Activator;
 import com.ectex.plugin.Commands;
+import com.ectex.plugin.project.LatexNature;
 import com.ectex.plugin.project.MainFile;
-import com.ectex.plugin.project.MainFileDecorator;
-import com.ectex.plugin.views.PdfView;
 
 /**
  * "Set as Main File" and "Clear Main File", offered in the EcTeX submenu of the context menu of a
- * .tex file or a project (Project Explorer, Navigator, Package Explorer) and of the EcTeX editor.
+ * .tex file or a LaTeX project (Project Explorer, Navigator, Package Explorer) and of the EcTeX editor.
  * <p>
  * The main file is the document that build, BibTeX, the PDF Preview and sync use for the whole project.
- * It is stored per project.
+ * It is stored per project and only exists in LaTeX projects (see {@link LatexNature}).
  */
-public class MainFileHandler extends AbstractHandler {
+public class MainFileHandler extends ResourceCommandHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -47,6 +32,10 @@ public class MainFileHandler extends AbstractHandler {
 		try {
 			if (project == null) {
 				message = "Select a .tex file or a project first.";
+				error = true;
+			} else if (!LatexNature.has(project)) {
+				message = NLS.bind("Project {0} is not a LaTeX project. Convert it first: right-click the project >"
+						+ " Configure > Convert to LaTeX Project.", project.getName());
 				error = true;
 			} else if (set) {
 				if (!(target instanceof IFile file) || !"tex".equals(file.getFileExtension())) {
@@ -68,57 +57,7 @@ public class MainFileHandler extends AbstractHandler {
 			message = "Cannot save the main file setting: " + e.getMessage();
 			error = true;
 		}
-		refresh(project);
-		report(HandlerUtil.getActivePart(event), message, error);
+		finish(event, project, message, error);
 		return null;
-	}
-
-	/** The resource under the right-click: the selected file or project, else the file of the active editor. */
-	private static IResource target(ExecutionEvent event) {
-		ISelection selection = HandlerUtil.getCurrentSelection(event);
-		if (selection instanceof IStructuredSelection structured && structured.size() == 1) {
-			IResource resource = Adapters.adapt(structured.getFirstElement(), IResource.class);
-			if (resource != null) {
-				return resource;
-			}
-		}
-		IEditorPart editor = HandlerUtil.getActiveEditor(event);
-		return editor != null && editor.getEditorInput() instanceof IFileEditorInput input ? input.getFile() : null;
-	}
-
-	/** Re-decorates the explorers and reloads the PDF Preview if it shows a document of that project. */
-	private static void refresh(IProject project) {
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		workbench.getDecoratorManager().update(MainFileDecorator.ID);
-		if (project == null) {
-			return;
-		}
-		for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
-			for (IWorkbenchPage page : window.getPages()) {
-				PdfView view = PdfView.find(page);
-				if (view != null) {
-					view.refreshProject(project);
-				}
-			}
-		}
-	}
-
-	/** Shows the result in the status line of the view or editor the command was started from. */
-	private static void report(IWorkbenchPart part, String message, boolean error) {
-		IStatusLineManager status = null;
-		if (part instanceof IViewPart view) {
-			status = view.getViewSite().getActionBars().getStatusLineManager();
-		} else if (part instanceof IEditorPart editor) {
-			status = editor.getEditorSite().getActionBars().getStatusLineManager();
-		}
-		if (status == null) {
-			return;
-		}
-		if (error) {
-			status.setErrorMessage(message);
-		} else {
-			status.setErrorMessage(null);
-			status.setMessage(message);
-		}
 	}
 }
