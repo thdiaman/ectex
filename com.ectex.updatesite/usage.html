@@ -90,6 +90,7 @@
   <h2>Configuration</h2>
   <ul>
     <li><strong>Tools:</strong> <em>Window &gt; Preferences &gt; EcTeX</em> sets the LaTeX engine, the bibliography tool (BibTeX or Biber), the Build All sequence, their arguments and the <code>synctex</code> command (see <a href="#build">Choosing the tools</a>). Use a full path if Eclipse does not see a program on the <code>PATH</code>.</li>
+    <li><strong>PDF Preview (experimental):</strong> <em>Sharp text on high-DPI screens</em> in <em>Preferences &gt; EcTeX</em>. On by default. When on, pages are rendered at the real pixel density of the screen they are shown on, which makes text crisp on scaled screens (125%, 150%, 200%). It uses several times more memory per page and re-renders when you move the window to another screen. Turn it off if pages look wrong or Eclipse feels slow. If memory runs out, EcTeX turns it off by itself for the rest of the session and says so in the status line.</li>
     <li><strong>Shortcuts:</strong> <em>Window &gt; Preferences &gt; General &gt; Keys</em>, then filter by <code>EcTeX</code>. Every command above can be rebound or unbound there. The keys shown in status-line messages always follow your bindings.</li>
   </ul>
 
@@ -115,7 +116,7 @@
   <ul>
     <li>A project has one main file. To build another document of the same project, set another main file or clear it first.</li>
     <li>A main file can only be set for files that belong to a project in the workspace, not for files opened from elsewhere on disk.</li>
-    <li>The PDF is rendered at normal resolution, so text can look soft on high-DPI screens.</li>
+    <li>On high-DPI (scaled) screens the PDF Preview renders pages at the real resolution of the screen, which keeps text sharp but uses several times more memory per page. This is the experimental setting <em>Sharp text on high-DPI screens</em> (Preferences &gt; EcTeX, on by default); if memory runs out, EcTeX switches to normal rendering for the rest of the session.</li>
     <li>The PDF Preview has no text search.</li>
   </ul>
 </main>

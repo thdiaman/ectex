@@ -40,7 +40,10 @@ Defaults:
 | `Ctrl+B` / `Ctrl+I` / `Ctrl+U` | `\textbf{}` / `\textit{}` / `\underline{}` – wraps the selection or puts the caret inside |
 | `Ctrl+Shift+E` / `Ctrl+Shift+M` | `\emph{}` / `$ $` |
 
-PDF view: wheel scrolls, `Ctrl`+wheel (or `+` / `-`) zooms, right-click for "Fit Width".
+PDF view: wheel scrolls, `Ctrl`+wheel (or `+` / `-`) zooms, right-click for "Fit Width". On high-DPI (scaled) screens
+pages are rendered at the screen's real resolution so text stays sharp. This is the experimental setting **Sharp text on
+high-DPI screens** (Preferences > EcTeX, on by default). It uses several times more memory per page; if memory runs out,
+EcTeX switches to normal rendering for the rest of the session.
 The view follows the active `.tex` editor and shows the PDF of that editor's document (the project's main file
 if one is set); an editor whose document has no PDF yet leaves the view unchanged.
 

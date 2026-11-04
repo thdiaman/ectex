@@ -17,5 +17,6 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(PreferenceConstants.BIBTEX_ARGS, "");
 		store.setDefault(PreferenceConstants.BUILD_ALL_SEQUENCE, BuildPlan.SEQUENCE_WITH_BIBLIOGRAPHY);
 		store.setDefault(PreferenceConstants.SYNCTEX_COMMAND, "synctex");
+		store.setDefault(PreferenceConstants.SHARP_RENDERING, true);
 	}
 }

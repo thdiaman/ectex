@@ -26,6 +26,12 @@ public final class PreferenceConstants {
 	 */
 	public static final String BUILD_ALL_SEQUENCE = "buildAllSequence";
 
+	/**
+	 * Experimental: render the PDF Preview at the real pixel density of high-DPI screens, so text is sharp
+	 * (uses more memory). On by default; falls back to normal rendering if memory runs out.
+	 */
+	public static final String SHARP_RENDERING = "sharpRendering";
+
 	/** SyncTeX command line utility used for forward and inverse search. */
 	public static final String SYNCTEX_COMMAND = "synctexCommand";
 

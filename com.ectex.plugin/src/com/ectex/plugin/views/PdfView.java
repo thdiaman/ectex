@@ -97,6 +97,7 @@ public class PdfView extends ViewPart {
 	public void createPartControl(Composite parent) {
 		viewer = new PdfViewer(parent);
 		viewer.setInverseSearchHandler(this::inverseSearch);
+		viewer.setNoticeHandler(message -> showStatus(message, true));
 		viewer.setPlaceholder(() -> "No PDF to show.\nOpen a .tex file and " + Commands.howTo(Commands.BUILD)
 				+ " to build it.\nCtrl+click on the PDF jumps to the source.");
 		getSite().getService(IContextService.class).activateContext(CONTEXT_ID);

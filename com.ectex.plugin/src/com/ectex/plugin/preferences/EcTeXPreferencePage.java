@@ -1,5 +1,6 @@
 package com.ectex.plugin.preferences;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -46,6 +47,17 @@ public class EcTeXPreferencePage extends FieldEditorPreferencePage implements IW
 						{ "LaTeX, bibliography tool, LaTeX, LaTeX", BuildPlan.SEQUENCE_WITH_BIBLIOGRAPHY } },
 				parent));
 		addField(new StringFieldEditor(PreferenceConstants.SYNCTEX_COMMAND, "SyncTeX command:", parent));
+
+		addField(new BooleanFieldEditor(PreferenceConstants.SHARP_RENDERING,
+				"Sharp text on high-DPI screens (experimental)", parent) {
+			@Override
+			protected void doFillIntoGrid(Composite composite, int numColumns) {
+				super.doFillIntoGrid(composite, numColumns);
+				getChangeControl(composite).setToolTipText("Renders PDF pages at the screen's real pixel density. "
+						+ "Uses several times more memory per page. Turn off if pages look wrong or "
+						+ "Eclipse feels slow.");
+			}
+		});
 	}
 
 	@Override

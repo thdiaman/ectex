@@ -20,12 +20,16 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTError;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
@@ -36,6 +40,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ScrollBar;
 
 import com.ectex.plugin.Activator;
+import com.ectex.plugin.preferences.PreferenceConstants;
 
 /**
  * A minimal PDF viewer: pages are stacked vertically and rendered lazily with PDFBox on a
@@ -74,12 +79,15 @@ public class PdfViewer extends Canvas {
 		}
 	}
 
-	private record CachedPage(Image image, double scale) {
+	/** A rendered page: the logical scale and the screen zoom (percent) it was rendered for, and its approximate size. */
+	private record CachedPage(Image image, double scale, int zoom, long bytes) {
 	}
 
 	private static final int MARGIN = 12;
 	private static final int GAP = 12;
 	private static final int MAX_CACHED_PAGES = 16;
+	/** Upper limit for the memory of the cached page bitmaps (the sharp rendering needs several times more per page). */
+	private static final long MAX_CACHE_BYTES = 128L * 1024 * 1024;
 	private static final double MIN_SCALE = 0.25;
 	private static final double MAX_SCALE = 4.0;
 	private static final int HIGHLIGHT_MILLIS = 4000;
@@ -109,6 +117,16 @@ public class PdfViewer extends Canvas {
 	private Consumer<PdfPoint> inverseSearchHandler;
 	private Runnable pendingReveal;
 
+	/** Experimental sharp rendering on high-DPI screens (preference), see {@link HiDpiImages}. */
+	private boolean sharp;
+	/** Set when sharp rendering ran out of memory: normal rendering is used for the rest of the session. */
+	private boolean sharpDisabled;
+	private Consumer<String> noticeHandler;
+	/** Zoom (percent) the pages are rendered at now; written by the UI thread, read by the render thread. */
+	private volatile int currentRenderZoom = 100;
+	private long cacheBytes;
+	private final IPropertyChangeListener preferenceListener = this::onPreferenceChanged;
+
 	public PdfViewer(Composite parent) {
 		super(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
 		setBackground(getDisplay().getSystemColor(SWT.COLOR_GRAY));
@@ -129,7 +147,35 @@ public class PdfViewer extends Canvas {
 		addListener(SWT.MouseWheel, this::onMouseWheel);
 		addListener(SWT.KeyDown, this::onKeyDown);
 		addDisposeListener(e -> onDispose());
+		IPreferenceStore preferences = preferences();
+		sharp = preferences != null && preferences.getBoolean(PreferenceConstants.SHARP_RENDERING);
+		if (preferences != null) {
+			preferences.addPropertyChangeListener(preferenceListener);
+		}
+		// The screen's scaling changed (other monitor, remote session): painting renders at the new density.
+		addListener(SWT.ZoomChanged, e -> redraw());
 		createContextMenu();
+	}
+
+	private static IPreferenceStore preferences() {
+		Activator activator = Activator.getDefault();
+		return activator == null ? null : activator.getPreferenceStore();
+	}
+
+	private void onPreferenceChanged(PropertyChangeEvent event) {
+		if (!PreferenceConstants.SHARP_RENDERING.equals(event.getProperty()) || isDisposed()) {
+			return;
+		}
+		getDisplay().asyncExec(() -> {
+			if (isDisposed()) {
+				return;
+			}
+			IPreferenceStore store = preferences();
+			sharp = store != null && store.getBoolean(PreferenceConstants.SHARP_RENDERING);
+			sharpDisabled = false; // a change of the setting is a fresh start after an out-of-memory fallback
+			clearCache(); // re-render the visible pages at the new density
+			redraw();
+		});
 	}
 
 	// ---------------------------------------------------------------- public API
@@ -156,6 +202,11 @@ public class PdfViewer extends Canvas {
 		} catch (RejectedExecutionException e) {
 			// viewer already disposed
 		}
+	}
+
+	/** Receives a message (in the UI thread) when the viewer had to fall back to normal rendering. */
+	public void setNoticeHandler(Consumer<String> handler) {
+		this.noticeHandler = handler;
 	}
 
 	/** Called (in the UI thread) when the user Ctrl+clicks a position in the PDF. */
@@ -258,6 +309,7 @@ public class PdfViewer extends Canvas {
 			page.image().dispose();
 		}
 		cache.clear();
+		cacheBytes = 0;
 		pending.clear();
 		failed.clear();
 	}
@@ -278,6 +330,10 @@ public class PdfViewer extends Canvas {
 	}
 
 	private void onDispose() {
+		IPreferenceStore preferences = preferences();
+		if (preferences != null) {
+			preferences.removePropertyChangeListener(preferenceListener);
+		}
 		DocState st = state;
 		state = null;
 		clearCache();
@@ -395,6 +451,7 @@ public class PdfViewer extends Canvas {
 		Color white = getDisplay().getSystemColor(SWT.COLOR_WHITE);
 		Color border = getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY);
 		int scrollY = getVerticalBar().getSelection();
+		int zoom = updateRenderZoom();
 		for (int i = 0; i < pageTop.length; i++) {
 			int top = pageTop[i] - scrollY;
 			int height = pageHeightPx(i);
@@ -408,18 +465,27 @@ public class PdfViewer extends Canvas {
 			int width = pageWidthPx(i);
 
 			CachedPage cached = cache.get(i);
-			if (cached == null) {
+			boolean fresh = cached != null && Math.abs(cached.scale() - scale) < 1e-6 && cached.zoom() == zoom;
+			try {
+				if (cached == null) {
+					gc.setBackground(white);
+					gc.fillRectangle(left, top, width, height);
+				} else if (fresh) {
+					gc.drawImage(cached.image(), left, top);
+				} else {
+					// Stale zoom level or screen scaling: show the old bitmap stretched until the new one arrives.
+					Rectangle b = cached.image().getBounds();
+					gc.setInterpolation(SWT.HIGH);
+					gc.drawImage(cached.image(), 0, 0, b.width, b.height, left, top, width, height);
+				}
+			} catch (OutOfMemoryError | SWTError e) {
+				// SWT creates the native image when it is first drawn, so memory can run out here too.
 				gc.setBackground(white);
 				gc.fillRectangle(left, top, width, height);
-			} else if (Math.abs(cached.scale() - scale) < 1e-6) {
-				gc.drawImage(cached.image(), left, top);
-			} else {
-				// Stale zoom level: show the old bitmap stretched until the new one arrives.
-				Rectangle b = cached.image().getBounds();
-				gc.setInterpolation(SWT.HIGH);
-				gc.drawImage(cached.image(), 0, 0, b.width, b.height, left, top, width, height);
+				onOutOfMemory(st, i, cached == null ? 100 : cached.zoom());
+				return; // the cache was cleared and a repaint is scheduled
 			}
-			if ((cached == null || Math.abs(cached.scale() - scale) >= 1e-6) && !failed.contains(i)) {
+			if (!fresh && !failed.contains(i)) {
 				requestRender(st, i);
 			}
 			gc.setForeground(border);
@@ -441,36 +507,85 @@ public class PdfViewer extends Canvas {
 		}
 	}
 
+	/**
+	 * A page could not be rendered or shown for lack of memory. If it was a sharp (high-resolution) page, sharp
+	 * rendering is turned off for this session and the visible pages are rendered normally; at normal resolution
+	 * there is nothing left to give up, so only that page is marked as failed.
+	 */
+	private void onOutOfMemory(DocState st, int index, int renderZoom) {
+		if (isDisposed() || st != state) {
+			return;
+		}
+		if (renderZoom <= 100) {
+			failed.add(index);
+			Activator.log("Not enough memory to render PDF page " + (index + 1), null);
+			return;
+		}
+		if (sharpDisabled) {
+			return;
+		}
+		sharpDisabled = true;
+		Activator.log(IStatus.WARNING, "Sharp text in the PDF Preview was turned off for this session: not enough memory", null);
+		clearCache();
+		redraw();
+		if (noticeHandler != null) {
+			noticeHandler.accept("PDF Preview: not enough memory for sharp text - using normal rendering until the setting is changed "
+					+ "or Eclipse is restarted.");
+		}
+	}
+
+	/** The zoom pages are rendered at for the screen this viewer is on right now (100 unless sharp rendering is on). */
+	private int updateRenderZoom() {
+		int screenZoom = sharp && !sharpDisabled ? HiDpiImages.zoomOf(this) : 100;
+		int zoom = HiDpiImages.renderZoom(screenZoom, scale);
+		currentRenderZoom = zoom;
+		return zoom;
+	}
+
 	private void requestRender(DocState st, int index) {
 		double renderScale = scale;
-		String key = index + "@" + renderScale;
+		int renderZoom = currentRenderZoom;
+		String key = index + "@" + renderScale + "x" + renderZoom;
 		if (!pending.add(key)) {
 			return;
 		}
 		Display display = getDisplay();
 		try {
 			renderPool.execute(() -> {
-				// Skip work that became obsolete while it was queued (zoomed again, document reloaded).
-				if (st != state || Math.abs(renderScale - scale) > 1e-6) {
+				// Skip work that became obsolete while it was queued (zoomed again, document reloaded, screen changed).
+				if (st != state || Math.abs(renderScale - scale) > 1e-6 || renderZoom != currentRenderZoom) {
 					display.asyncExec(() -> pending.remove(key));
 					return;
 				}
 				ImageData data = null;
+				boolean outOfMemory = false;
 				try {
-					BufferedImage image = st.renderer.renderImage(index, (float) renderScale, ImageType.RGB);
-					data = toImageData(image);
+					float pixelScale = (float) (renderScale * renderZoom / 100.0);
+					BufferedImage image = st.renderer.renderImage(index, pixelScale, ImageType.RGB);
+					data = HiDpiImages.toImageData(image, (int) Math.round(st.widths[index] * renderScale),
+							(int) Math.round(st.heights[index] * renderScale), renderZoom);
+				} catch (OutOfMemoryError e) {
+					outOfMemory = true;
 				} catch (IOException | RuntimeException | LinkageError e) {
 					Activator.log("Cannot render PDF page " + (index + 1), e);
 				}
 				ImageData result = data;
-				display.asyncExec(() -> finishRender(st, index, renderScale, key, result));
+				boolean oom = outOfMemory;
+				display.asyncExec(() -> {
+					if (oom) {
+						pending.remove(key);
+						onOutOfMemory(st, index, renderZoom);
+					} else {
+						finishRender(st, index, renderScale, renderZoom, key, result);
+					}
+				});
 			});
 		} catch (RejectedExecutionException e) {
 			pending.remove(key);
 		}
 	}
 
-	private void finishRender(DocState st, int index, double renderScale, String key, ImageData data) {
+	private void finishRender(DocState st, int index, double renderScale, int renderZoom, String key, ImageData data) {
 		pending.remove(key);
 		if (isDisposed() || st != state) {
 			return;
@@ -479,30 +594,36 @@ public class PdfViewer extends Canvas {
 			failed.add(index);
 			return;
 		}
-		CachedPage previous = cache.put(index, new CachedPage(new Image(getDisplay(), data), renderScale));
+		if (renderZoom != currentRenderZoom || (sharpDisabled && renderZoom > 100)) {
+			// The screen changed (or sharp rendering was just given up) while this page was rendering: drop it,
+			// painting asks again at the right density.
+			redraw();
+			return;
+		}
+		long bytes = HiDpiImages.bytes(data, renderZoom);
+		Image image;
+		try {
+			image = HiDpiImages.createImage(getDisplay(), data, renderZoom);
+		} catch (OutOfMemoryError | SWTError e) {
+			onOutOfMemory(st, index, renderZoom);
+			return;
+		}
+		CachedPage previous = cache.put(index, new CachedPage(image, renderScale, renderZoom, bytes));
 		if (previous != null) {
 			previous.image().dispose();
+			cacheBytes -= previous.bytes();
 		}
+		cacheBytes += bytes;
 		Iterator<CachedPage> eldest = cache.values().iterator();
-		while (cache.size() > MAX_CACHED_PAGES && eldest.hasNext()) {
-			eldest.next().image().dispose();
+		while ((cache.size() > MAX_CACHED_PAGES || cacheBytes > MAX_CACHE_BYTES) && cache.size() > 1
+				&& eldest.hasNext()) {
+			CachedPage old = eldest.next();
+			old.image().dispose();
+			cacheBytes -= old.bytes();
 			eldest.remove();
 		}
 		redraw();
 	}
-
-	private static ImageData toImageData(BufferedImage image) {
-		int width = image.getWidth();
-		int height = image.getHeight();
-		ImageData data = new ImageData(width, height, 24, new PaletteData(0xFF0000, 0x00FF00, 0x0000FF));
-		int[] row = new int[width];
-		for (int y = 0; y < height; y++) {
-			image.getRGB(0, y, width, 1, row, 0, width);
-			data.setPixels(0, y, width, row, 0);
-		}
-		return data;
-	}
-
 	// ---------------------------------------------------------------- coordinates
 
 	private PdfPoint toPdfPoint(int widgetX, int widgetY) {
