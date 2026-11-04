@@ -1,7 +1,7 @@
 @echo off
 rem Builds the EcTeX p2 update site (Windows launcher; the work is done by BuildSite.java).
 rem
-rem   build-site.bat --eclipse-home "C:\Program Files\eclipsesdk" [--clean] [--qualifier TEXT]
+rem   build-site.bat --eclipse-home "C:\Program Files\eclipsesdk" [--qualifier TEXT] [--keep-old]
 rem
 rem Instead of --eclipse-home you can set the ECLIPSE_HOME environment variable.
 rem Needs a JDK 17+ on the PATH. Run "build-site.bat --help" for all options.

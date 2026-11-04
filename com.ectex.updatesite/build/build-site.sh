@@ -1,7 +1,7 @@
 #!/bin/sh
 # Builds the EcTeX p2 update site (Linux/macOS launcher; the work is done by BuildSite.java).
 #
-#   sh build-site.sh --eclipse-home /opt/eclipse [--clean] [--qualifier TEXT]
+#   sh build-site.sh --eclipse-home /opt/eclipse [--qualifier TEXT] [--keep-old]
 #
 # Instead of --eclipse-home you can set the ECLIPSE_HOME environment variable.
 # Needs a JDK 17+ on the PATH. Run "sh build-site.sh --help" for all options.

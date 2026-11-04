@@ -11,6 +11,15 @@ Tex editor and builder plugin for the Eclipse IDE.
 
 ## Install
 
+<!-- MARKETPLACE: disabled until the Eclipse Marketplace listing is approved. To enable it, delete the two lines below that contain only the comment opener and the comment closer, then change the line that starts with "In Eclipse:" below the block to start with "From the update site: in Eclipse," (in bold). -->
+<!--
+**From the Eclipse Marketplace:** drag the button onto a running Eclipse (it needs the Eclipse Marketplace
+Client, which most Eclipse packages include), or use **Help > Eclipse Marketplace…** and search for "EcTeX".
+
+[![Drag to your running Eclipse* workspace. *Requires Eclipse Marketplace Client](https://marketplace.eclipse.org/modules/custom/eclipsefdn/eclipsefdn_marketplace/images/btn-install.svg)](https://marketplace.eclipse.org/marketplace-client-intro?mpc_install=7578302 "Drag to your running Eclipse* workspace. *Requires Eclipse Marketplace Client")
+
+-->
+
 In Eclipse: **Help > Install New Software… > Add…** and enter
 
 ```
@@ -48,8 +57,8 @@ The content is not signed, so Eclipse shows an "unsigned content" warning on ins
    - Linux/macOS: `sh build-site.sh --eclipse-home /path/to/eclipse`
 
    Instead of `--eclipse-home` you can set the `ECLIPSE_HOME` environment variable. Both scripts only start
-   `BuildSite.java`, which does the work. It rebuilds the p2 repository in `com.ectex.updatesite/` (older
-   versions are kept; `--clean` starts from an empty repository) and writes
+   `BuildSite.java`, which does the work. Every build replaces the p2 repository in `com.ectex.updatesite/`
+   and the zip in `dist/`, so only a single version remains (pass `--keep-old` to keep older ones). It writes
    `com.ectex.updatesite/dist/ectex-updatesite-<version>.zip`.
 3. Commit and push the changed plug-in, feature and `com.ectex.updatesite/` files. The workflow publishes the site.
 4. Attach the zip from `dist/` to a GitHub release.

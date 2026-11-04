@@ -20,7 +20,7 @@ import javax.tools.StandardJavaFileManager;
 /**
  * Builds the EcTeX p2 update site (no PDE or Maven needed, only a JDK 17+ and an Eclipse).
  * Start it through build-site.bat (Windows) or build-site.sh (Linux/macOS), or directly:
- * <pre>java -Dectex.build.dir=. BuildSite.java --eclipse-home /path/to/eclipse [--clean]</pre>
+ * <pre>java -Dectex.build.dir=. BuildSite.java --eclipse-home /path/to/eclipse [--keep-old]</pre>
  *
  * <ol>
  * <li>compiles com.ectex.plugin against the plug-ins of the given Eclipse (Java 17 bytecode)
@@ -29,17 +29,19 @@ import javax.tools.StandardJavaFileManager;
  * <li>adds the category from category.xml
  * <li>writes dist/ectex-updatesite-&lt;version&gt;.zip for installing from an archive
  * </ol>
- * Older versions already in the repository are kept unless --clean is given.
+ * Every build replaces the previous one, so the repository (and dist/) always holds a single version.
+ * Pass --keep-old to add the new version next to the older ones instead.
  */
 public class BuildSite {
 
 	private static final String USAGE = String.join("\n",
-			"Usage: build-site [--eclipse-home DIR] [--qualifier TEXT] [--clean]",
+			"Usage: build-site [--eclipse-home DIR] [--qualifier TEXT] [--keep-old]",
 			"",
 			"  --eclipse-home DIR  Eclipse that contains the p2 publisher tools (an Eclipse SDK / PDE install",
 			"                      does). Default: the ECLIPSE_HOME environment variable.",
 			"  --qualifier TEXT    replaces \".qualifier\" in the versions (default: timestamp yyyyMMddHHmm)",
-			"  --clean             delete the previously published repository content first");
+			"  --keep-old          keep the versions already in the repository (and their zips in dist/).",
+			"                      Default: the new build replaces them, so only one version remains.");
 
 	private static class BuildException extends RuntimeException {
 		BuildException(String message) {
@@ -62,12 +64,12 @@ public class BuildSite {
 	private void run(String[] args) throws Exception {
 		String eclipseHomeArg = System.getenv("ECLIPSE_HOME");
 		String qualifier = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
-		boolean clean = false;
+		boolean keepOld = false;
 		for (int i = 0; i < args.length; i++) {
 			switch (args[i]) {
 			case "--eclipse-home" -> eclipseHomeArg = value(args, ++i);
 			case "--qualifier" -> qualifier = value(args, ++i);
-			case "--clean" -> clean = true;
+			case "--keep-old" -> keepOld = true;
 			case "-h", "--help" -> {
 				System.out.println(USAGE);
 				return;
@@ -145,8 +147,8 @@ public class BuildSite {
 					StandardCharsets.UTF_8);
 
 			// ---- publish -----------------------------------------------------------------------
-			if (clean) {
-				System.out.println("      --clean: removing the previous repository content");
+			if (!keepOld) {
+				System.out.println("      replacing the previous repository content (use --keep-old to keep it)");
 				for (String name : List.of("features", "plugins", "content.jar", "content.xml", "artifacts.jar",
 						"artifacts.xml", "p2.index")) {
 					deleteTree(site.resolve(name));
@@ -176,6 +178,13 @@ public class BuildSite {
 			step(5, "Creating the archive");
 			Path dist = Files.createDirectories(site.resolve("dist"));
 			Path zip = dist.resolve("ectex-updatesite-" + version + ".zip");
+			if (!keepOld) {
+				try (Stream<Path> zips = Files.list(dist)) {
+					for (Path old : (Iterable<Path>) zips.filter(p -> p.getFileName().toString().matches("ectex-updatesite-.*\\.zip"))::iterator) {
+						Files.delete(old);
+					}
+				}
+			}
 			Files.deleteIfExists(zip);
 			List<String> jarArgs = new ArrayList<>(List.of("--create", "--no-manifest", "--file", zip.toString()));
 			for (String item : List.of("features", "plugins", "content.jar", "artifacts.jar")) {

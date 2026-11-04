@@ -132,6 +132,9 @@ pre code { background: none; padding: 0; }
   margin: 14px 0;
 }
 
+.install-button { display: inline-block; line-height: 0; }
+.install-button img { height: auto; }
+
 .table-scroll { overflow-x: auto; }
 
 table {
