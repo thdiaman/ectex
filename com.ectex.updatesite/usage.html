@@ -30,8 +30,8 @@
   <h2>Build</h2>
   <div class="table-scroll"><table>
     <tr><th>Default key</th><th>Command</th></tr>
-    <tr><td><kbd>Ctrl</kbd>+<kbd>F1</kbd></td><td><strong>Build PDF</strong>: saves the file, runs <code>pdflatex -interaction=nonstopmode -file-line-error -synctex=1</code>, and reloads the PDF if it succeeded.</td></tr>
-    <tr><td><kbd>Ctrl</kbd>+<kbd>F2</kbd></td><td><strong>Run BibTeX</strong>: runs <code>bibtex</code> on the document. It needs the <code>.aux</code> file from an earlier build.</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>F2</kbd></td><td><strong>Build PDF</strong>: saves the file, runs <code>pdflatex -interaction=nonstopmode -file-line-error -synctex=1</code>, and reloads the PDF if it succeeded.</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>F3</kbd></td><td><strong>Run BibTeX</strong>: runs <code>bibtex</code> on the document. It needs the <code>.aux</code> file from an earlier build.</td></tr>
   </table></div>
   <p>Output goes to the <strong>EcTeX Build</strong> console. LaTeX errors become problem markers in the editor and the Problems view.</p>
   <p>Typical sequence for a document with citations: <em>Build, BibTeX, Build, Build</em>. BibTeX does not rebuild the PDF by itself. For biblatex projects set the bibtex command to <code>biber</code> in the preferences.</p>
@@ -64,7 +64,7 @@
   <h3>&ldquo;Could not run pdflatex&rdquo;</h3>
   <p>Eclipse cannot find the program. Install MiKTeX or TeX Live, restart Eclipse so it sees the updated <code>PATH</code>, or enter the full path in <em>Preferences &gt; EcTeX</em>.</p>
   <h3>Ctrl+Space or Ctrl+click does not jump</h3>
-  <p>Build once with <kbd>Ctrl</kbd>+<kbd>F1</kbd> so the <code>.synctex.gz</code> file exists and matches the current text, and make sure <code>synctex</code> is available. The status line shows the reason when a jump fails. Edits since the last build can shift line numbers.</p>
+  <p>Build once with <kbd>Ctrl</kbd>+<kbd>F2</kbd> so the <code>.synctex.gz</code> file exists and matches the current text, and make sure <code>synctex</code> is available. The status line shows the reason when a jump fails. Edits since the last build can shift line numbers.</p>
   <h3>A shortcut does nothing or triggers something else</h3>
   <p>Open <em>Preferences &gt; General &gt; Keys</em>, filter by the key, and look for conflicts in the <em>Conflicts</em> column. Some systems reserve <kbd>Ctrl</kbd>+<kbd>Space</kbd> for switching input languages; rebind <em>Synchronize</em> in that case.</p>
   <h3>The PDF Preview is blank after a build</h3>

@@ -28,8 +28,8 @@ Defaults:
 
 | Key | Action |
 |---|---|
-| `Ctrl+F1` | Build PDF: save, run `pdflatex -synctex=1`, reload the PDF on success (output in the *EcTeX Build* console, errors as problem markers) |
-| `Ctrl+F2` | Run BibTeX on the document (needs the `.aux` file from a previous build; then build twice to resolve citations) |
+| `Ctrl+F2` | Build PDF: save, run `pdflatex -synctex=1`, reload the PDF on success (output in the *EcTeX Build* console, errors as problem markers) |
+| `Ctrl+F3` | Run BibTeX on the document (needs the `.aux` file from a previous build; then build twice to resolve citations) |
 | `Ctrl+Space` in the editor | Forward search: scroll to and highlight the PDF location of the caret line |
 | `Ctrl+Space` in the PDF view | Inverse search: jump to the source line at the mouse position (or last click) |
 | `Ctrl+click` in the PDF view | Inverse search at the clicked position |

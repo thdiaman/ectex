@@ -17,7 +17,7 @@ public final class Commands {
 	}
 
 	/**
-	 * How to invoke a command, based on the key currently bound to it ("press Ctrl+F1"), so messages stay
+	 * How to invoke a command, based on the key currently bound to it ("press Ctrl+F2"), so messages stay
 	 * correct after the user rebinds it. Falls back to "use the EcTeX menu" when it is unbound.
 	 */
 	public static String howTo(String commandId) {
