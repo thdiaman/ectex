@@ -27,7 +27,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.ITextEditor;
-import org.osgi.service.prefs.BackingStoreException;
 
 import com.ectex.plugin.Activator;
 import com.ectex.plugin.Commands;
@@ -149,7 +148,8 @@ public class EcTeXEditor extends TextEditor {
 		IFile configured = configuredMainFile();
 		if (configured != null && (!configured.exists() || configured.getLocation() == null)) {
 			showStatus("The main file " + configured.getProjectRelativePath() + " of project "
-					+ configured.getProject().getName() + " does not exist. Set a new one or clear it (EcTeX menu).", true);
+					+ configured.getProject().getName() + " does not exist. Right-click a .tex file or the project and"
+					+ " use EcTeX > Set as Main File or Clear Main File.", true);
 			return null;
 		}
 		File main = getMainFile();
@@ -159,48 +159,9 @@ public class EcTeXEditor extends TextEditor {
 		return main;
 	}
 
-	/** Makes this file the main file of its project (EcTeX menu). */
-	public void setAsMainFile() {
-		if (!(getEditorInput() instanceof IFileEditorInput input)) {
-			showStatus("A main file can only be set for a file that belongs to a project in the workspace.", true);
-			return;
-		}
-		IFile file = input.getFile();
-		try {
-			MainFile.set(file);
-		} catch (BackingStoreException e) {
-			Activator.log("Cannot save the main file of project " + file.getProject().getName(), e);
-			showStatus("Cannot save the main file setting: " + e.getMessage(), true);
-			return;
-		}
-		showStatus("Main file of project " + file.getProject().getName() + ": " + file.getProjectRelativePath()
-				+ ". Build, BibTeX, the PDF Preview and sync now use it.", false);
-		refreshPdfView();
-	}
-
-	/** Removes the main file setting of this editor's project (EcTeX menu). */
-	public void clearMainFile() {
-		if (!(getEditorInput() instanceof IFileEditorInput input) || configuredMainFile() == null) {
-			showStatus("No main file is set for this project.", false);
-			return;
-		}
-		IProject project = input.getFile().getProject();
-		try {
-			MainFile.clear(project);
-		} catch (BackingStoreException e) {
-			Activator.log("Cannot clear the main file of project " + project.getName(), e);
-			showStatus("Cannot save the main file setting: " + e.getMessage(), true);
-			return;
-		}
-		showStatus("Main file of project " + project.getName() + " cleared: each file is built on its own again.", false);
-		refreshPdfView();
-	}
-
-	private void refreshPdfView() {
-		PdfView view = findPdfView();
-		if (view != null) {
-			view.setEditor(this, true);
-		}
+	/** The workspace project of this editor's file, or null for files outside the workspace. */
+	public IProject getProject() {
+		return getEditorInput() instanceof IFileEditorInput input ? input.getFile().getProject() : null;
 	}
 
 	/** Extra advice for a failed build of a file that has no \documentclass and no main file is set. */
@@ -212,8 +173,8 @@ public class EcTeXEditor extends TextEditor {
 		if (document == null || document.get().contains("\\documentclass")) {
 			return "";
 		}
-		return " This file has no \\documentclass: if it is part of a larger document, open the main file and use"
-				+ " EcTeX > Set as Main File.";
+		return " This file has no \\documentclass: if it is part of a larger document, right-click the main file"
+				+ " and choose EcTeX > Set as Main File.";
 	}
 
 	/** Saves this editor and the other dirty editors of the same project, so a build sees all edits. */

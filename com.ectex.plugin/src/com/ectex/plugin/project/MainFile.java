@@ -23,6 +23,9 @@ public final class MainFile {
 
 	/** The main file configured for the project, or null. The file may not exist (any more). */
 	public static IFile get(IProject project) {
+		if (project == null || !project.isAccessible()) {
+			return null; // closed or deleted project
+		}
 		String path = node(project).get(KEY, null);
 		return path == null || path.isBlank() ? null : project.getFile(new Path(path));
 	}

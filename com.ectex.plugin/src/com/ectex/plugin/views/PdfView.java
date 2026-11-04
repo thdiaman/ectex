@@ -2,6 +2,7 @@ package com.ectex.plugin.views;
 
 import java.io.File;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorPart;
@@ -161,6 +162,14 @@ public class PdfView extends ViewPart {
 			loadedFile = pdf;
 			loadedModified = pdf.lastModified();
 			viewer.load(pdf);
+		}
+	}
+
+	/** Reloads the view if it shows a document of the given project (its main file setting changed). */
+	public void refreshProject(IProject project) {
+		EcTeXEditor shown = editor;
+		if (shown != null && project.equals(shown.getProject())) {
+			setEditor(shown, true);
 		}
 	}
 

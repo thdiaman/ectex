@@ -44,12 +44,17 @@ The view follows the active `.tex` editor and shows the PDF of that editor's doc
 if one is set); an editor whose document has no PDF yet leaves the view unchanged.
 
 ## Documents with several files (main file)
-Menu commands, no default key (bind them under Preferences > General > Keys if you like):
+Right-click in the Project Explorer (or Navigator / Package Explorer), or in the editor's own right-click menu,
+and use the **EcTeX** submenu. There is no menu-bar entry and no default key.
 
-| Menu | Action |
-|---|---|
-| `EcTeX > Set as Main File` | Make the file in the active editor the main file of its project |
-| `EcTeX > Clear Main File` | Remove the main file of the project; each file is built on its own again |
+| Right-click on | Command | Action |
+|---|---|---|
+| a `.tex` file that is not the main file (or in its editor) | `EcTeX > Set as Main File` | Make this file the main file of its project |
+| the main file (or in its editor) | `EcTeX > Clear Main File` | Remove the main file of the project |
+| a project that has a main file | `EcTeX > Clear Main File` | Remove the main file of the project |
+
+The main file is shown in the explorers as `ectex-demo-multifile.tex [main file]` (switch this off under
+Preferences > General > Appearance > Label Decorations > "EcTeX main file").
 
 With a main file set, in every `.tex` file of the project: build and BibTeX run on the main file (in its folder,
 after saving the project's unsaved files), the PDF view shows the main file's PDF, forward search works from any

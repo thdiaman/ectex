@@ -82,13 +82,13 @@
       <command
             id="com.ectex.plugin.commands.setMainFile"
             name="Set as Main File"
-            description="Use this file as the main file of its project: build, BibTeX, PDF Preview and sync then work on it from every file of the project"
+            description="Use this .tex file as the main file of its project (right-click the file): build, BibTeX, PDF Preview and sync then work on it from every file of the project"
             categoryId="com.ectex.plugin.category">
       </command>
       <command
             id="com.ectex.plugin.commands.clearMainFile"
             name="Clear Main File"
-            description="Remove the main file of the project, so each file is built on its own again"
+            description="Remove the main file of the project (right-click the main file or the project), so each file is built on its own again"
             categoryId="com.ectex.plugin.category">
       </command>
       <command
@@ -169,23 +169,14 @@
             </or>
          </activeWhen>
       </handler>
+      <!-- the main file commands work on the selected file or project (Project Explorer), so no activeWhen -->
       <handler
             commandId="com.ectex.plugin.commands.setMainFile"
             class="com.ectex.plugin.handlers.MainFileHandler">
-         <activeWhen>
-            <with variable="activeEditorId">
-               <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
-            </with>
-         </activeWhen>
       </handler>
       <handler
             commandId="com.ectex.plugin.commands.clearMainFile"
             class="com.ectex.plugin.handlers.MainFileHandler">
-         <activeWhen>
-            <with variable="activeEditorId">
-               <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
-            </with>
-         </activeWhen>
       </handler>
       <handler
             commandId="com.ectex.plugin.commands.bold"
@@ -315,20 +306,6 @@
                   style="push">
             </command>
             <separator
-                  name="com.ectex.plugin.menu.sepMain"
-                  visible="true">
-            </separator>
-            <command
-                  commandId="com.ectex.plugin.commands.setMainFile"
-                  label="Set as Main File"
-                  style="push">
-            </command>
-            <command
-                  commandId="com.ectex.plugin.commands.clearMainFile"
-                  label="Clear Main File"
-                  style="push">
-            </command>
-            <separator
                   name="com.ectex.plugin.menu.sep"
                   visible="true">
             </separator>
@@ -359,6 +336,143 @@
             </command>
          </menu>
       </menuContribution>
+
+      <!-- Right-click a .tex file or a project (Project Explorer, Navigator, Package Explorer):
+           EcTeX > Set as Main File / Clear Main File. Set is offered on a .tex file that is not the
+           main file; Clear on the main file and on a project that has a main file. -->
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <menu
+               id="com.ectex.plugin.popup.explorer"
+               label="EcTeX">
+            <visibleWhen checkEnabled="false">
+               <with variable="selection">
+                  <count value="1"/>
+                  <iterate ifEmpty="false">
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <or>
+                           <test property="org.eclipse.core.resources.extension" value="tex"/>
+                           <and>
+                              <instanceof value="org.eclipse.core.resources.IProject"/>
+                              <test property="com.ectex.plugin.hasMainFile" value="true"/>
+                           </and>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </with>
+            </visibleWhen>
+            <command
+                  commandId="com.ectex.plugin.commands.setMainFile"
+                  label="Set as Main File"
+                  style="push">
+               <visibleWhen checkEnabled="false">
+                  <with variable="selection">
+                     <count value="1"/>
+                     <iterate ifEmpty="false">
+                        <adapt type="org.eclipse.core.resources.IResource">
+                           <test property="org.eclipse.core.resources.extension" value="tex"/>
+                           <test property="com.ectex.plugin.isMainFile" value="false"/>
+                        </adapt>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.clearMainFile"
+                  label="Clear Main File"
+                  style="push">
+               <visibleWhen checkEnabled="false">
+                  <with variable="selection">
+                     <count value="1"/>
+                     <iterate ifEmpty="false">
+                        <adapt type="org.eclipse.core.resources.IResource">
+                           <or>
+                              <test property="com.ectex.plugin.isMainFile" value="true"/>
+                              <and>
+                                 <instanceof value="org.eclipse.core.resources.IProject"/>
+                                 <test property="com.ectex.plugin.hasMainFile" value="true"/>
+                              </and>
+                           </or>
+                        </adapt>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+         </menu>
+      </menuContribution>
+
+      <!-- The same two commands in the right-click menu of the EcTeX editor (they act on its file/project) -->
+      <menuContribution
+            locationURI="popup:#TextEditorContext?after=additions">
+         <menu
+               id="com.ectex.plugin.popup.editor"
+               label="EcTeX">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <with variable="activeEditorId">
+                     <equals value="com.ectex.plugin.editors.EcTeXEditor"/>
+                  </with>
+                  <with variable="activeEditorInput">
+                     <adapt type="org.eclipse.core.resources.IFile"/>
+                  </with>
+               </and>
+            </visibleWhen>
+            <command
+                  commandId="com.ectex.plugin.commands.setMainFile"
+                  label="Set as Main File"
+                  style="push">
+               <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorInput">
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <test property="com.ectex.plugin.isMainFile" value="false"/>
+                     </adapt>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="com.ectex.plugin.commands.clearMainFile"
+                  label="Clear Main File"
+                  style="push">
+               <visibleWhen checkEnabled="false">
+                  <with variable="activeEditorInput">
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <test property="com.ectex.plugin.hasMainFile" value="true"/>
+                     </adapt>
+                  </with>
+               </visibleWhen>
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
+
+   <!-- Properties used by the visibility conditions above -->
+   <extension point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            id="com.ectex.plugin.propertyTesters.mainFile"
+            type="org.eclipse.core.resources.IResource"
+            namespace="com.ectex.plugin"
+            properties="isMainFile,hasMainFile"
+            class="com.ectex.plugin.project.MainFileTester">
+      </propertyTester>
+   </extension>
+
+   <!-- Shows " [main file]" after the name of the main file in the explorers.
+        Can be switched off in Preferences > General > Appearance > Label Decorations. -->
+   <extension point="org.eclipse.ui.decorators">
+      <decorator
+            id="com.ectex.plugin.decorators.mainFile"
+            label="EcTeX main file"
+            lightweight="true"
+            adaptable="true"
+            state="true"
+            class="com.ectex.plugin.project.MainFileDecorator">
+         <enablement>
+            <objectClass name="org.eclipse.core.resources.IFile"/>
+         </enablement>
+         <description>
+            Appends [main file] to the main file of a project (set with EcTeX &gt; Set as Main File).
+         </description>
+      </decorator>
    </extension>
 
    <extension point="org.eclipse.ui.preferencePages">
