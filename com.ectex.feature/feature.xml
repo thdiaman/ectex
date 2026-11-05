@@ -2,11 +2,11 @@
 <feature
       id="com.ectex.feature"
       label="EcTeX - Split LaTeX Workspace"
-      version="1.0.0.qualifier"
+      version="1.1.0.qualifier"
       provider-name="EcTeX">
 
    <description>
-      LaTeX editor with syntax highlighting and a PDF Preview view. Build with pdflatex and bibtex from the keyboard, and jump between the source and the PDF with SyncTeX (forward search with Ctrl+Space, inverse search with Ctrl+click or Ctrl+Space in the PDF view).
+      LaTeX editor with syntax highlighting, a PDF Preview view, and LaTeX projects (New LaTeX Project wizard, LaTeX perspective, a main file for documents split over several files). Build from the keyboard with the LaTeX engine of your choice and BibTeX or Biber (Build PDF, Build All), and jump between the source and the PDF with SyncTeX (forward search with Ctrl+Space, inverse search with Ctrl+click or Ctrl+Space in the PDF view).
    </description>
 
    <copyright>
@@ -22,14 +22,14 @@
       - Apache FontBox 2.0.31 (https://pdfbox.apache.org/)
       - Apache Commons Logging 1.2 (https://commons.apache.org/proper/commons-logging/)
 
-      EcTeX needs pdflatex, bibtex and synctex (MiKTeX or TeX Live) installed on your computer; they are not part of this feature.
+      EcTeX needs a LaTeX engine (for example pdflatex), a bibliography tool (bibtex or biber) and synctex (MiKTeX or TeX Live) installed on your computer; they are not part of this feature.
    </license>
 
    <plugin
          id="com.ectex.plugin"
          download-size="0"
          install-size="0"
-         version="1.0.0.qualifier"
+         version="1.1.0.qualifier"
          unpack="false"/>
 
 </feature>

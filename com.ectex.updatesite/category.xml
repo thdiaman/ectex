@@ -5,7 +5,7 @@
    </feature>
    <category-def name="latex" label="EcTeX - LaTeX Editor and PDF Preview">
       <description>
-         LaTeX editor with syntax highlighting, a PDF Preview view, pdflatex/bibtex builds and SyncTeX forward/inverse search.
+         LaTeX editor with syntax highlighting, a PDF Preview view, LaTeX projects, LaTeX/BibTeX/Biber builds and SyncTeX forward/inverse search.
       </description>
    </category-def>
 </site>
