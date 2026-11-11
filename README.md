@@ -16,16 +16,13 @@ Tex editor and builder plugin for the Eclipse IDE.
 
 ## Install
 
-<!-- MARKETPLACE: disabled until the Eclipse Marketplace listing is approved. To enable it, delete the two lines below that contain only the comment opener and the comment closer, then change the line that starts with "In Eclipse:" below the block to start with "From the update site: in Eclipse," (in bold). -->
-<!--
 **From the Eclipse Marketplace:** drag the button onto a running Eclipse (it needs the Eclipse Marketplace
 Client, which most Eclipse packages include), or use **Help > Eclipse Marketplace…** and search for "EcTeX".
 
 [![Drag to your running Eclipse* workspace. *Requires Eclipse Marketplace Client](https://marketplace.eclipse.org/modules/custom/eclipsefdn/eclipsefdn_marketplace/images/btn-install.svg)](https://marketplace.eclipse.org/marketplace-client-intro?mpc_install=7578302 "Drag to your running Eclipse* workspace. *Requires Eclipse Marketplace Client")
 
--->
 
-In Eclipse: **Help > Install New Software… > Add…** and enter
+**From the update site:** in Eclipse, **Help > Install New Software… > Add…** and enter
 
 ```
 https://thdiaman.github.io/ectex/
